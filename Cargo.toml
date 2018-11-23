@@ -1,0 +1,25 @@
+[package]
+name = "branca"
+description = "A Rust implementation of branca, a JWT alternative."
+version = "0.1.0"
+authors = ["return"]
+keywords = ["fernet", "branca", "crypto", "jwt"]
+categories = ["cryptography"]
+readme = "README.md"
+license = "MIT"
+documentation = "https://docs.rs/branca"
+
+[dependencies]
+
+base-x = "0.2.3"
+byteorder = "1.2.7"
+chrono = { version = "0.4.6", features = ["serde"] }
+hex = "0.3.2"
+# Will change this to point a sodiumoxide release that has crypto_aead_xchacha20poly1305_ietf_* functions.
+# In the meantime, use a local version instead.
+sodiumoxide =  { version = "0.1.0"}
+serde = "^1"
+
+[[example]]
+name = "example"
+path = "test/main.rs"
