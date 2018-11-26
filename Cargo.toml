@@ -8,6 +8,7 @@ categories = ["cryptography"]
 readme = "README.md"
 license = "MIT"
 documentation = "https://docs.rs/branca"
+repository = "https://github.com/return/branca"
 
 [dependencies]
 base-x = "0.2.3"
