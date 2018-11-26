@@ -1,7 +1,7 @@
 [package]
 name = "branca"
 description = "A Rust implementation of the branca specification, a JWT alternative."
-version = "0.1.0"
+version = "0.1.1"
 authors = ["return"]
 keywords = ["fernet", "branca", "crypto", "jwt"]
 categories = ["cryptography"]
