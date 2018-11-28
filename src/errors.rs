@@ -1,7 +1,6 @@
 use std::{fmt, result};
 use std::error::Error as StdErr;
 
-
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum Error {
     InvalidBase62Token,
