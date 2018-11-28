@@ -2,7 +2,7 @@
 
 |Crate|Documentation|License|Travis
 |:---:|:-----------:|:-----------:|:-----------:|
-|[![Crates.io][crates-badge]][crates-url]|[![Docs][doc-badge]][doc-url]|![License][license-url]|![Travis-CI][travis-url]
+|[![Crates.io][crates-badge]][crates-url]|[![Docs][doc-badge]][doc-url]|[![License][license-badge]][license-url]|[![Travis-CI][travis-badge]][travis-url]
 
 [crates-badge]: https://img.shields.io/crates/v/branca.svg
 [crates-url]: https://crates.io/crates/branca
