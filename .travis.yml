@@ -1,0 +1,76 @@
+dist: trusty
+language: rust
+services: docker
+sudo: required
+
+env:
+  global:
+    - CRATE_NAME=branca
+
+matrix:
+  include:
+    # Linux
+    - env: TARGET=i686-unknown-linux-gnu
+    - env: TARGET=x86_64-unknown-linux-gnu
+
+    # OSX
+    - env: TARGET=i686-apple-darwin
+      os: osx
+    - env: TARGET=x86_64-apple-darwin
+      os: osx
+
+    # *BSD
+    - env: TARGET=i686-unknown-freebsd DISABLE_TESTS=1
+    - env: TARGET=x86_64-unknown-freebsd DISABLE_TESTS=1
+
+    # Windows
+    - env: TARGET=x86_64-pc-windows-gnu
+
+    # Testing other channels
+    - env: TARGET=x86_64-unknown-linux-gnu
+      rust: nightly
+    - env: TARGET=x86_64-apple-darwin
+      os: osx
+      rust: nightly
+
+before_install:
+  - set -e
+  - rustup self update
+
+install:
+  - sh ci/install.sh
+  - source ~/.cargo/env || true
+
+script:
+  - bash ci/script.sh
+
+after_script: set +e
+
+before_deploy:
+  - sh ci/before_deploy.sh
+
+deploy:
+  api_key:
+    secure: lUQrIbnKLQ14qITgtu5YR8G5i7T25p6ZB4cjDPwKO2ueBdSe4uN4BFVf6te1BfjTd6hsbE22rpjMmXU5q/VA2ytJpnKHpvuThugzn4SYWHiw1il+ET8BJDPr8A7R5TnZutHN5Pz/VqyBb8aWJYUUNYLZjzOPOIOd+Dmd3dT6r4AIb4G7wb02CiARGM/+TLkk9guvhbrLaAHRkULa5/FFprKZrtrZheSQWUUv6NDPiwitMcDq70QVAYPs6wUVEhILvrKUzMe+Wrc6tOc99yiID9cp7bUg1TNS4YRCFUR+7/L2RelevjrI1ZwW1d8BdelAMBV8YXm6iPBiTketM+ov8hedJtKfYEq5j9qG7wtNoamlntuRTV7VMhUXxBvkHU5bmFeurctaIygC/5H4b4OW6Ru69G8o1ekMxxPayTCvUaXm6mg+DzMQZO3w2+WIJtJ1bwQn8453ZrBvsEVUV/fhoegeaNy8lELAzDV2NeIzumD9Ydt6szOb/0hkiE9uDAKJ91ixDiwQA33SLUbfBiXjJNWP1qzyVXtAlHdUGH7nKv9xTJAu4veiW7J+DCPQSOAXL+A9BOIL37Q6ZVddDL5qaSY+a61mTxUg+Z8JW+jjSf9FLXSf+SZoknabAeFUTi3i30tR76Rmx2V9zhoN1o1kAIsL/ptYhD6ueVpKf7Kg5TE=
+  file_glob: true
+  file: $CRATE_NAME-$TRAVIS_TAG-$TARGET.*
+  on:
+    condition: $TRAVIS_RUST_VERSION = stable
+    tags: true
+  provider: releases
+  skip_cleanup: true
+
+cache: cargo
+before_cache:
+  # Travis can't cache files that are not readable by "others"
+  - chmod -R a+r $HOME/.cargo
+
+branches:
+  only:
+    # release tags
+    - /^v\d+\.\d+\.\d+.*$/
+    - master
+
+notifications:
+  email:
+    on_success: never

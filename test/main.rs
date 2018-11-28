@@ -7,12 +7,12 @@ mod branca_unit_tests {
 
     use branca::{Branca, encode, decode};
 
-    const NONCE_BYTES: [u8;24] = [0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c];
+    const NONCE_BYTES: [u8;24] = *b"\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c";
 
     #[test]
     pub fn test_encode() {
-        let keygen = String::from("supersecretkeyyoushouldnotcommit").into_bytes();
-        let message = String::from("Hello world!");
+        let keygen = b"supersecretkeyyoushouldnotcommit".to_vec();
+        let message = "Hello world!".to_string();
         let nonce = NONCE_BYTES.to_vec();
         let timestamp = 123206400;
         let branca_token = encode(message,keygen,nonce,timestamp).unwrap();
@@ -21,8 +21,8 @@ mod branca_unit_tests {
 
     #[test]
     pub fn test_decode() {
-        let ciphertext = String::from("875GH233T7IYrxtgXxlQBYiFobZMQdHAT51vChKsAIYCFxZtL1evV54vYqLyZtQ0ekPHt8kJHQp0a");
-        let keygen = String::from("supersecretkeyyoushouldnotcommit");
+        let ciphertext = "875GH233T7IYrxtgXxlQBYiFobZMQdHAT51vChKsAIYCFxZtL1evV54vYqLyZtQ0ekPHt8kJHQp0a".to_string();
+        let keygen = b"supersecretkeyyoushouldnotcommit".to_vec();
         let ttl = 0;
         assert_eq!(decode(ciphertext, keygen, ttl).unwrap(), "Hello world!");
     }
@@ -30,11 +30,11 @@ mod branca_unit_tests {
    #[test]
     pub fn test_encode_builder() {
         let token = Branca::new()
-        .set_key(String::from("supersecretkeyyoushouldnotcommit").into_bytes())
+        .set_key(b"supersecretkeyyoushouldnotcommit".to_vec())
         .set_nonce(NONCE_BYTES.to_vec())
         .set_timestamp(123206400)
         .set_ttl(0)
-        .build(String::from("Hello world!"));
+        .build("Hello world!".to_string());
         assert_eq!(token.unwrap(), "875GH233T7IYrxtgXxlQBYiFobZMQdHAT51vChKsAIYCFxZtL1evV54vYqLyZtQ0ekPHt8kJHQp0a");
     }
 }

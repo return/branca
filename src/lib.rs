@@ -8,7 +8,6 @@ pub mod errors;
 use byteorder::*;
 use base_x::{encode as b62_encode, decode as b62_decode};
 use chrono::prelude::*;
-
 use errors::Error as BrancaError;
 use sodiumoxide::crypto::aead::xchacha20poly1305_ietf as xchacha20;
 
@@ -40,49 +39,39 @@ impl Branca {
     pub fn key(&self) -> &Vec<u8> {
         &self.key
     }
-
     pub fn nonce(&self) -> &Vec<u8> {
         &self.nonce
     }
-
     pub fn ttl(&self) -> u32 {
         self.ttl
     }
-
     pub fn timestamp(&self) -> u32 {
         self.timestamp
     }
-
     pub fn set_key(mut self, key: Vec<u8>) -> Self {
         self.key = key;
         self
     }
-
     pub fn set_nonce(mut self, nonce:Vec<u8> ) -> Self {
         self.nonce = nonce;
         self
     }
-
     pub fn set_ttl(mut self, ttl: u32) -> Self {
         self.ttl = ttl;
         self
     }
-
     pub fn set_timestamp(mut self, timestamp: u32) -> Self {
         self.timestamp = timestamp;
         self
     }
-
     pub fn build(self, message: String) -> Result<String, BrancaError> {
         let key = self.key;
         let nonce = self.nonce;
         let mut timestamp = self.timestamp;
-
         if timestamp <= 0 {
-            let duration = Utc::now();
-            timestamp = duration.timestamp() as u32;
+            // Generate a timestamp instead of a zero supplied one.
+            timestamp = Utc::now().timestamp() as u32;
         }
-
         let crypted = encode(message, key, nonce, timestamp);
         return Ok(crypted.unwrap());
     }
@@ -94,13 +83,11 @@ pub fn encode(msg: String, key: Vec<u8>, nonce: Vec<u8>, timestamp: u32) -> Resu
     sodiumoxide::init().map_err(|_e| BrancaError::SodiumInitFailed).ok();
 
     // Check the nonce length before going any further.
-
     if nonce.len() != 24 {
       return Err(BrancaError::BadNonceLength);
     }
 
     // Check the key length before going any further.
-
     if key.len() != 32 {
       return Err(BrancaError::BadKeyLength);
     }
@@ -134,25 +121,23 @@ pub fn encode(msg: String, key: Vec<u8>, nonce: Vec<u8>, timestamp: u32) -> Resu
     return Ok(b62_enc.to_string());
 }
 
-pub fn decode(data: String, key: String, ttl: u32) -> Result<String, BrancaError> {
+pub fn decode(data: String, key: Vec<u8>, ttl: u32) -> Result<String, BrancaError> {
 
-    // The key must be 32 bits in size.
+    // The key must be 32 bytes in size.
     if key.len() != 32 {
         return Err(BrancaError::BadKeyLength);
     }
 
-
     let decoded_data = b62_decode(BASE62, &data).expect("Base62 token is invalid.");
 
     // Obtain supplied key
-    let key = xchacha20::Key::from_slice(key.as_bytes()).unwrap();
+    let key = xchacha20::Key::from_slice(key.as_slice()).unwrap();
 
     // After we have decoded the data, the branca token is now represented
     // by the following layout below:
 
     // Branca( header[0..29] + ciphertext[29..] )
     // Version (&u8) || Timestamp (u32) || Nonce ([u8;24]) || Ciphertext (&[u8]) || Tag ([u8:16])
-
     // We then obtain the header, ciphertext, version and timestamp with this layout.
     let header = &decoded_data[0..29];
     let ciphertext = &decoded_data[29..];
