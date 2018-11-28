@@ -74,5 +74,12 @@ But do note that the nonce **must be 24 bytes in length.** Keys **must be 32 byt
 # Testing
 `cargo test --examples`
 
+# Contributing
+Contributions and patches are welcome! Fork this repository, add your changes and send a PR.
+
+Before you send a PR, make sure you run `cargo test --examples` first to check if your changes pass the tests.
+
+If you would like to fix a bug or add a enhancement, please do so in the issues section and provide a short description about your changes.
+
 # License
 MIT
