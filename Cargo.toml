@@ -1,20 +1,25 @@
 [package]
 name = "branca"
 description = "A Rust implementation of the branca specification, a JWT alternative."
-version = "0.1.1"
+version = "0.2.0"
 authors = ["return"]
-keywords = ["fernet", "branca", "crypto", "jwt"]
+keywords = ["fernet", "branca", "cryptography", "aead", "xchacha20_poly1305"]
 categories = ["cryptography"]
 readme = "README.md"
 license = "MIT"
 documentation = "https://docs.rs/branca"
 repository = "https://github.com/return/branca"
 
+[badges]
+travis-ci = { repository = "return/branca", branch = "master" }
+maintenance = { status = "actively-developed" }
+
 [dependencies]
 base-x = "0.2.3"
 byteorder = "1.2.7"
 chrono = { version = "0.4.6", features = ["serde"] }
 sodiumoxide = {version = "^0.2.0"}
+
 
 [[example]]
 name = "example"
