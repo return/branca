@@ -13,7 +13,7 @@
 [travis-badge]: https://api.travis-ci.org/return/branca.svg?branch=master
 [travis-url]: https://travis-ci.org/return/branca
 
-Branca is a secure alternative token format to JWT. This implementation of the branca token specification is written in Rust and uses a fork of [sodiumoxide](https://github.com/return/sodiumoxide-xchacha20poly1305) for the XChaCha20-IETF-Poly1305 AEAD (Authenticated Encryption with Associated Data) stream cipher for generating encrypted tokens. More about the branca token specification can be found here in [branca-spec.](
+Branca is a secure alternative token format to JWT. This implementation of the branca token specification is written in Rust and uses [sodiumoxide](https://github.com/sodiumoxide/sodiumoxide) for the XChaCha20-IETF-Poly1305 AEAD (Authenticated Encryption with Associated Data) stream cipher for generating encrypted tokens. More about the branca token specification can be found here in [branca-spec.](
 https://github.com/tuupola/branca-spec/blob/master/README.md)
 
 # Requirements
