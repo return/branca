@@ -14,9 +14,7 @@ repository = "https://github.com/return/branca"
 base-x = "0.2.3"
 byteorder = "1.2.7"
 chrono = { version = "0.4.6", features = ["serde"] }
-# Will change this to point either sodiumoxide or ring release that supports XChaCha20-Poly1305 in the next release.
-# In the meantime, use a local version of sodiumoxide-xchacha20poly1305.
-sodiumoxide-xchacha20poly1305 = {version = "^0.1.0"}
+sodiumoxide = {version = "^0.2.0"}
 
 [[example]]
 name = "example"

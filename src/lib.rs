@@ -1,4 +1,4 @@
-extern crate sodiumoxide_xchacha20poly1305 as sodiumoxide;
+extern crate sodiumoxide;
 extern crate byteorder;
 extern crate base_x;
 extern crate chrono;
