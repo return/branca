@@ -17,8 +17,13 @@ maintenance = { status = "actively-developed" }
 [dependencies]
 base-x = "0.2.3"
 byteorder = "1.2.7"
-chrono = { version = "0.4.6", features = ["serde"] }
-sodiumoxide = {version = "^0.2.0"}
+chacha20-poly1305-aead = "0.1.2"
+
+[dev-dependencies]
+ring = "0.13.5"
+serde = "^1.0"
+serde_derive = "1.0.83"
+serde_json = "1.0"
 
 
 [[example]]
