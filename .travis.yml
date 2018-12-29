@@ -9,14 +9,6 @@ rust:
 sudo: required
 dist: xenial
 
-before_install:
-  - wget https://github.com/jedisct1/libsodium/releases/download/1.0.16/libsodium-1.0.16.tar.gz
-  - tar -xzvf libsodium-1.0.16.tar.gz
-  - cd libsodium-1.0.16
-  - ./configure --enable-shared=no
-  - make -j8
-  - sudo make install
-
 script:
   - cargo build --verbose
   - cargo build --examples
