@@ -70,7 +70,7 @@ impl Branca {
         let mut timestamp = self.timestamp;
         if timestamp <= 0 {
             // Generate a timestamp instead of a zero supplied one.
-            let ts = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).expect("Failed to obtain timestamp from system clock");
+            let ts = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).expect("Failed to obtain timestamp from system clock.");
             timestamp = ts.as_secs() as u32;
         }
         let crypted = encode(message, key, nonce, timestamp);
@@ -242,7 +242,7 @@ pub fn decode(data: &str, key: Vec<u8>, ttl: u32) -> Result<String, BrancaError>
      if ttl != 0 {
          let future = (timestamp + ttl) as u64;
          let time_now = SystemTime::now();
-         let ts_seconds = time_now.duration_since(UNIX_EPOCH).expect("Failed");
+         let ts_seconds = time_now.duration_since(UNIX_EPOCH).expect("Failed to obtain timestamp from system clock.");
          let timestamp_now = ts_seconds.as_secs();
          if future < timestamp_now as u64 {
              return Err(BrancaError::ExpiredToken);
