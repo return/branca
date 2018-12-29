@@ -101,7 +101,7 @@ pub fn encode(msg: &str, key: Vec<u8>, nonce: Vec<u8>, timestamp: u32) -> Result
 
     let timestamp: u32 = timestamp;
 
-    // The nonce is now appended to the timestamp in a Vector.
+    // The nonce is now appended to the timestamp in a vector.
     let mut time_bytes = vec![0x0; 4];
 
     BigEndian::write_u32(&mut time_bytes, timestamp);
