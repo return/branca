@@ -9,7 +9,6 @@ pub enum Error {
     BadKeyLength,
     ExpiredToken,
     DecryptFailed,
-    SodiumInitFailed,
 }
 
 impl fmt::Display for Error {
@@ -26,7 +25,6 @@ impl StdErr for Error {
             Error::BadNonceLength => "Bad nonce length.",
             Error::BadKeyLength => "Bad key length.",
             Error::ExpiredToken => "This token has expired.",
-            Error::SodiumInitFailed => "Libsodium initialisation failed.",
             Error::DecryptFailed => "Decryption failed."
         }
     }
