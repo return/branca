@@ -1,6 +1,6 @@
 [package]
 name = "branca"
-description = "A Rust implementation of the branca specification, a JWT alternative."
+description = "Authenticated encrypted API tokens for Rust. A secure alternative to JWT."
 version = "0.2.0"
 authors = ["return"]
 keywords = ["fernet", "branca", "cryptography", "aead", "xchacha20_poly1305"]
@@ -24,7 +24,6 @@ ring = "0.13.5"
 serde = "^1.0"
 serde_derive = "1.0.83"
 serde_json = "1.0"
-
 
 [[example]]
 name = "example"
