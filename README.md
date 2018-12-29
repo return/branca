@@ -13,7 +13,7 @@
 [travis-badge]: https://api.travis-ci.org/return/branca.svg?branch=master
 [travis-url]: https://travis-ci.org/return/branca
 
-Branca is a secure alternative token format to JWT. This implementation of the branca token specification is written in Rust and uses [sodiumoxide](https://github.com/sodiumoxide/sodiumoxide) for the XChaCha20-IETF-Poly1305 AEAD (Authenticated Encryption with Associated Data) stream cipher for generating encrypted tokens. More about the branca token specification can be found here in [branca-spec.](
+Branca is a secure alternative token format to JWT. This implementation is written in pure Rust and uses the XChaCha20-Poly1305 AEAD (Authenticated Encryption with Associated Data) stream cipher for generating authenticated and encrypted tamper-proof tokens. More information about the branca token specification can be found here in [branca-spec.](
 https://github.com/tuupola/branca-spec/blob/master/README.md)
 
 # Requirements
@@ -32,7 +32,7 @@ branca = "^0.1.1"
 
 Then you can import the crate into your project with these lines:
 ```rust
-extern crate branca
+extern crate branca;
 use branca::{Branca, encode, decode};
 ```
 
@@ -43,7 +43,7 @@ use branca::{Branca, encode, decode};
 let key = b"supersecretkeyyoushouldnotcommit".to_vec();
 let nonce = *b"\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c";
 
-let message = "Hello world!".to_string();
+let message = "Hello world!";
 let timestamp = 123206400;
 let branca_token = encode(message,key,nonce,timestamp).unwrap();
 
@@ -52,9 +52,9 @@ let branca_token = encode(message,key,nonce,timestamp).unwrap();
 
 ## Decoding
 ```rust
-let ciphertext = branca_token.to_string();
+let ciphertext = branca_token.as_str();
 let key = b"supersecretkeyyoushouldnotcommit".to_vec();
-let ttl = 0; // The ttl can be used to determine if the supplied token has expired or not. //
+let ttl = 0; // The ttl can be used to determine if the supplied token has expired or not.
 let decoded = decode(ciphertext, key, ttl);
 
 if decoded.is_err() {
@@ -64,6 +64,64 @@ if decoded.is_err() {
     // msg = "Hello world!"
 }
 ```
+## Encode/Decode arbitrary data structures with Serde.
+Since Branca is able to work with any format of data in the payload, it is possible for the
+payload to be anything from a JSON object, plaintext, raw bytes, protocol buffers or even
+a JWT.
+
+Here is a example of using Branca to encode/decode a typical JSON object with serde_json.
+
+```toml
+[dependencies]
+branca = "^0.1.1"
+serde_json = "^1.0"
+ring = "^0.1"
+```
+
+```rust
+#[macro_use]
+extern crate serde_json;
+#[macro_use]
+extern crate serde_derive;
+extern crate branca;
+extern crate ring;
+
+use branca::{encode, decode};
+use ring::rand::{SystemRandom, SecureRandom};
+
+#[derive(Serialize, Deserialize, Debug)]
+struct User {
+    user: String,
+    scope: Vec<String>,
+}
+
+fn main(){
+
+    let message = json!({
+        "user" : "someone@example.com",
+        "scope":["read", "write", "delete"],
+    }).to_string();
+
+    // Generate Nonce (24 bytes in length)
+    let rand_nonce = SystemRandom::new();
+    let mut nonce = vec![0; 24];
+    rand_nonce.fill(nonce.as_mut()).unwrap();
+
+    // Encode Message
+    let key = b"supersecretkeyyoushouldnotcommit";
+    let timestamp = 123206400;
+    let branca_token = encode(message.as_str(), key.to_vec(), nonce, timestamp).unwrap();
+
+    // Decode Message
+    let payload = decode(branca_token.as_str(), key.to_vec(), 0).unwrap();
+    let json: User = serde_json::from_str(payload.as_str()).unwrap();
+
+    println!("{}", branca_token);
+    println!("{}", payload);
+    println!("{:?}", json);
+}
+```
+
 You can use either Ring's SecureRandom or sodiumoxide's aead gen_nonce() or gen_key() for generating secure nonces and keys for example. 
 
 But do note that the nonce **must be 24 bytes in length.** Keys **must be 32 bytes in length.**
