@@ -27,7 +27,7 @@ Add this line to your Cargo.toml under the dependencies section:
 
 ```toml
 [dependencies]
-branca = "^0.1.1"
+branca = "^0.5.0"
 ```
 
 Then you can import the crate into your project with these lines:
@@ -65,17 +65,17 @@ if decoded.is_err() {
 }
 ```
 ## Encode/Decode arbitrary data structures with Serde.
-Since Branca is able to work with any format of data in the payload, it is possible for the
-payload to be anything from a JSON object, plaintext, raw bytes, protocol buffers or even
-a JWT.
+Since Branca is able to work with any format of data in the payload, it is possible for the payload to be anything from a JSON object, plaintext, raw bytes, protocol buffers or even a JWT.
 
 Here is a example of using Branca to encode/decode a typical JSON object with serde_json.
 
+Add the following into your Cargo.toml file:
 ```toml
 [dependencies]
-branca = "^0.1.1"
+branca = "^0.5.0"
 serde_json = "^1.0"
-ring = "^0.1"
+serde_derive = "1.0.83"
+ring = "0.13.5"
 ```
 
 ```rust
