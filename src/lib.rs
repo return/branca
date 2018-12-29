@@ -70,7 +70,7 @@ impl Branca {
         let mut timestamp = self.timestamp;
         if timestamp <= 0 {
             // Generate a timestamp instead of a zero supplied one.
-            let ts = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).expect("Failed");
+            let ts = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).expect("Failed to obtain timestamp from system clock");
             timestamp = ts.as_secs() as u32;
         }
         let crypted = encode(message, key, nonce, timestamp);
