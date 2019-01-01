@@ -7,7 +7,7 @@ pub mod errors;
 
 use byteorder::*;
 use base_x::{encode as b62_encode, decode as b62_decode};
-use errors::Error as BrancaError;
+use self::errors::Error as BrancaError;
 use std::str;
 use std::time::{SystemTime, UNIX_EPOCH};
 
