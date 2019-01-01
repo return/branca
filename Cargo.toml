@@ -3,6 +3,7 @@ name = "branca"
 description = "Authenticated encrypted API tokens for Rust. A secure alternative to JWT."
 version = "0.5.0"
 authors = ["return"]
+edition = "2018"
 keywords = ["fernet", "branca", "cryptography", "aead", "xchacha20_poly1305"]
 categories = ["cryptography"]
 readme = "README.md"
@@ -20,10 +21,11 @@ byteorder = "1.2.7"
 chacha20-poly1305-aead = "0.1.2"
 
 [dev-dependencies]
-ring = "0.13.5"
+ring = "0.12.1"
 serde = "^1.0"
 serde_derive = "1.0.83"
 serde_json = "1.0"
+
 
 [[example]]
 name = "example"
