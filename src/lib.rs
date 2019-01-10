@@ -10,13 +10,14 @@ use base_x::{encode as b62_encode, decode as b62_decode};
 use self::errors::Error as BrancaError;
 use std::str;
 use std::time::{SystemTime, UNIX_EPOCH};
+use ring::rand::{SystemRandom, SecureRandom};
 
 // Branca magic byte.
 const VERSION: u8 = 0xBA;
 // Branca nonce bytes.
 const NONCE_BYTES: usize = 24;
 // Base 62 alphabet.
-const BASE62: &'static str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+const BASE62: &str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 // Branca builder
 #[derive(Clone, PartialEq, Debug)]
@@ -28,57 +29,76 @@ pub struct Branca {
 }
 
 impl Branca {
-    pub fn new () -> Branca {
-        Branca {
-            key: Default::default(),
-            nonce: Default::default(),
-            ttl: Default::default(),
-            timestamp: Default::default()
+
+    pub fn new (key: &[u8]) -> Result<Branca, BrancaError> {
+
+        // Check the key length before going any further.
+        if key.len() != 32 {
+            return Err(BrancaError::BadKeyLength);
         }
+
+        // Generate Nonce (24 bytes in length)
+        let mut nonce = vec![0; 24];
+        SystemRandom::new().fill(nonce.as_mut()).unwrap();
+
+        // Generate a timestamp instead of a zero supplied one.
+        let ts = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).expect("Failed to obtain timestamp from system clock.");
+        let timestamp = ts.as_secs() as u32;
+
+        Ok(Branca {
+            key: key.to_vec(),
+            nonce,
+            ttl: 0,
+            timestamp
+        })
     }
-    pub fn key(&self) -> &Vec<u8> {
-        &self.key
+
+    pub fn key(self) -> Vec<u8> {
+        self.key
     }
-    pub fn nonce(&self) -> &Vec<u8> {
-        &self.nonce
+    pub fn nonce(self) -> Vec<u8> {
+        self.nonce
     }
-    pub fn ttl(&self) -> u32 {
+    pub fn ttl(self) -> u32 {
         self.ttl
     }
-    pub fn timestamp(&self) -> u32 {
+    pub fn timestamp(self) -> u32 {
         self.timestamp
     }
-    pub fn set_key(mut self, key: Vec<u8>) -> Self {
+    pub fn set_key(&mut self, key: Vec<u8>) -> &mut Self {
         self.key = key;
         self
     }
-    pub fn set_nonce(mut self, nonce: Vec<u8> ) -> Self {
+    pub fn set_nonce(&mut self, nonce: Vec<u8> ) -> &mut Self {
         self.nonce = nonce;
         self
     }
-    pub fn set_ttl(mut self, ttl: u32) -> Self {
+    pub fn set_ttl(&mut self, ttl: u32) -> &mut Self {
         self.ttl = ttl;
         self
     }
-    pub fn set_timestamp(mut self, timestamp: u32) -> Self {
+    pub fn set_timestamp(&mut self, timestamp: u32) -> &mut Self {
         self.timestamp = timestamp;
         self
     }
-    pub fn build(self, message: &str) -> Result<String, BrancaError> {
-        let key = self.key;
-        let nonce = self.nonce;
+
+    pub fn encode(&self, message: &str) -> Result<String, BrancaError> {
         let mut timestamp = self.timestamp;
         if timestamp <= 0 {
             // Generate a timestamp instead of a zero supplied one.
             let ts = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).expect("Failed to obtain timestamp from system clock.");
             timestamp = ts.as_secs() as u32;
         }
-        let crypted = encode(message, key, nonce, timestamp);
+        let crypted = encode(message, &self.key, &self.nonce, timestamp);
         return Ok(crypted.unwrap());
+    }
+
+    pub fn decode(&self, ciphertext: &str, ttl: u32) -> Result<String, BrancaError> {
+       return decode(ciphertext, &self.key, ttl);
     }
 }
 
-pub fn encode(msg: &str, key: Vec<u8>, nonce: Vec<u8>, timestamp: u32) -> Result<String, BrancaError> {
+pub fn encode(data: &str, key: &[u8], nonce: &[u8], timestamp: u32) -> Result<String, BrancaError> {
 
     // Check the nonce length before going any further.
     if nonce.len() != 24 {
@@ -95,17 +115,15 @@ pub fn encode(msg: &str, key: Vec<u8>, nonce: Vec<u8>, timestamp: u32) -> Result
     
     let mut nonce_bytes = [0u8; NONCE_BYTES];
 
-    key_derv.copy_from_slice(key.as_slice());
+    key_derv.copy_from_slice(key);
 
-    nonce_bytes.copy_from_slice(nonce.as_slice());
-
-    let timestamp: u32 = timestamp;
+    nonce_bytes.copy_from_slice(nonce);
 
     // The nonce is now appended to the timestamp in a vector.
     let mut time_bytes = vec![0x0; 4];
 
     BigEndian::write_u32(&mut time_bytes, timestamp);
-    time_bytes.append(&mut Vec::from(nonce));
+    time_bytes.append(&mut nonce.to_vec());
 
     // We append the version header to the timestamp vector.
     let mut version_header = vec![VERSION];
@@ -140,13 +158,13 @@ pub fn encode(msg: &str, key: Vec<u8>, nonce: Vec<u8>, timestamp: u32) -> Result
     let mut derv_nonce_2 =[0u8; 12];
     derv_nonce_2[4..].copy_from_slice(&nonce_bytes[16..]);
 
-    let mut buf_crypt = Vec::with_capacity(msg.len());
+    let mut buf_crypt = Vec::with_capacity(data.len());
 
     // Encrypt the payload with ChaCha20-Poly1305 AEAD (de-attached mode)
     // We return the tag to be used later to construct the rest of the branca token.
 
     // Use the version header as the authenticated additional data.
-    let aead_tag = chacha20_poly1305_aead::encrypt(&part_crypted, &derv_nonce_2, &version_header, msg.as_bytes(), &mut buf_crypt).unwrap();
+    let aead_tag = chacha20_poly1305_aead::encrypt(&part_crypted, &derv_nonce_2, &version_header, data.as_bytes(), &mut buf_crypt).unwrap();
 
     // Append the tag to the ciphertext saved into the buffer.
     buf_crypt.append(&mut aead_tag.to_vec());
@@ -155,13 +173,13 @@ pub fn encode(msg: &str, key: Vec<u8>, nonce: Vec<u8>, timestamp: u32) -> Result
     version_header.append(&mut buf_crypt);
 
     // Our payload is now encoded into base62. 
-    let b62_enc = b62_encode(BASE62, &mut version_header.as_slice());
+    let b62_enc = b62_encode(BASE62, version_header.as_slice());
     
     // Return the branca token as a string.
     return Ok(b62_enc);
 }
 
-pub fn decode(data: &str, key: Vec<u8>, ttl: u32) -> Result<String, BrancaError> {
+pub fn decode(data: &str, key: &[u8], ttl: u32) -> Result<String, BrancaError> {
 
     // The key must be 32 bytes in size.
     if key.len() != 32 {
@@ -191,7 +209,7 @@ pub fn decode(data: &str, key: Vec<u8>, ttl: u32) -> Result<String, BrancaError>
     // Create the key given from the input.
     let mut key_bytes = [0u8; 32];
     
-    key_bytes.copy_from_slice(key.as_slice());
+    key_bytes.copy_from_slice(key);
 
     // Extract the 24 byte nonce in the header starting
     // from the first 6 bytes.
@@ -223,7 +241,7 @@ pub fn decode(data: &str, key: Vec<u8>, ttl: u32) -> Result<String, BrancaError>
     version_header.append(&mut time_bytes);
 
     // Check if there is a version mismatch.
-    if &version.as_slice()[0] != &VERSION {
+    if version.as_slice()[0] != VERSION {
        return Err(BrancaError::InvalidTokenVersion);
     }
 
@@ -234,17 +252,17 @@ pub fn decode(data: &str, key: Vec<u8>, ttl: u32) -> Result<String, BrancaError>
     // rest of the 16 byte nonce; i.e decrypting using XChaCha20 instead of ChaCha20.
     let decrypted = chacha20_poly1305_aead::decrypt(&part_crypted, &derv_nonce_2, &version_header, &ciphertext, &tag, &mut buf_crypt);
 
-     if !decrypted.is_ok() {
+     if decrypted.is_err() {
          return Err(BrancaError::DecryptFailed);
      }
 
     // TTL check to determine if the token has expired.
      if ttl != 0 {
-         let future = (timestamp + ttl) as u64;
+         let future = u64::from(timestamp + ttl);
          let time_now = SystemTime::now();
          let ts_seconds = time_now.duration_since(UNIX_EPOCH).expect("Failed to obtain timestamp from system clock.");
          let timestamp_now = ts_seconds.as_secs();
-         if future < timestamp_now as u64 {
+         if future < timestamp_now {
              return Err(BrancaError::ExpiredToken);
          }
     }
