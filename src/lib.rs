@@ -21,7 +21,7 @@ The internal format of a Branca token looks like this:
 Version (1B) || Timestamp (4B) || Nonce (24B) || Ciphertext (*B) || Tag (16B)
 ```
 
-The payload/ciphertext size can be of any arbitary length, this means that contents of the payload can be anything from Text, 
+The payload/ciphertext size can be of any arbitrary length, this means that contents of the payload can be anything from Text, 
 [JSON](https://en.wikipedia.org/wiki/JSON), [MessagePacks](http://msgpack.org/), [JWTs](https://jwt.io/), URLs, etc. 
 This allows a Branca Token to be a secure alternative to JWT, since it is authenticated and encrypted by default 
 and supports only one cipher as the standard; unlike JWT.
@@ -131,7 +131,7 @@ pub struct Branca {
 
 impl Branca {
 
-    /// Create a new Branca struct with a specified key. The lensgth of the key must be exactly 32 bytes.
+    /// Create a new Branca struct with a specified key. The length of the key must be exactly 32 bytes.
     /// 
     /// `key` - The key to be used for encrypting and decrypting the input. 
     /// 
@@ -215,7 +215,7 @@ impl Branca {
     }
     /// Encodes the message with the created Branca struct.
     /// 
-    /// The contents of the message can be of any arbitary sequence of bytes, ie. text, JSON, Protobuf, JWT or a MessagePack, etc.
+    /// The contents of the message can be of any arbitrary sequence of bytes, ie. text, JSON, Protobuf, JWT or a MessagePack, etc.
     /// 
     /// `message` - The data to be encoded as a Branca token.
     ///
@@ -263,7 +263,7 @@ impl Branca {
     ///    let mut :String payload = Default::default();
     ///
     ///    if decrypted.is_err() {
-    ///       // Somthing when wrong here...
+    ///       // Something went wrong here...
     ///    } else {
     ///      payload = decrypted.unwrap(); 
     ///     // payload now contains "Hello World!"
@@ -276,7 +276,7 @@ impl Branca {
 }
 /// Encodes the message and returns a Branca Token as a String.
 /// 
-/// The contents of the message can be of any arbitary sequence of bytes, ie. text, JSON, Protobuf, JWT or a MessagePack, etc.
+/// The contents of the message can be of any arbitrary sequence of bytes, ie. text, JSON, Protobuf, JWT or a MessagePack, etc.
 /// 
 /// `data` - The data to be encoded as a Branca token.
 /// 
@@ -290,7 +290,7 @@ impl Branca {
 /// 
 /// * The key must be 32 bytes in length, otherwise it returns a `BrancaError::BadKeyLength` Result.
 /// 
-/// * The nonce must be 24 bytes in length, otherwisse it returns a `BrancaError::BadNonceLength` Result.
+/// * The nonce must be 24 bytes in length, otherwise it returns a `BrancaError::BadNonceLength` Result.
 pub fn encode(data: &str, key: &[u8], nonce: &[u8], timestamp: u32) -> Result<String, BrancaError> {
 
     // Check the nonce length before going any further.
