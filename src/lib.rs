@@ -92,8 +92,9 @@ extern crate byteorder;
 extern crate base_x;
 extern crate chacha20_poly1305_aead;
 
-pub mod hchacha20;
 pub mod errors;
+
+mod hchacha20;
 
 use byteorder::*;
 use base_x::{encode as b62_encode, decode as b62_decode};
