@@ -140,7 +140,7 @@ impl Branca {
     /// use branca::Branca
     /// 
     /// fn main() {
-    ///        let key = b"supersecretkeyyoushouldnotcommit";
+    ///        let key = b"supersecretkeyyoushouldnotcommit".to_vec();
     ///        let token = Branca::new(&key);
     /// }
     ///```
