@@ -1,13 +1,20 @@
 use std::{fmt, result};
 use std::error::Error as StdErr;
 
-#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+/// The type of Branca errors that can occur when encoding or decoding Branca tokens. 
+#[derive(Debug, Copy, Clone)]
 pub enum Error {
+    /// When the given input is not a valid Base62 encoding.
     InvalidBase62Token,
+    /// When the version of the Branca token is mismatched.
     InvalidTokenVersion,
+    /// When the nonce is of an incorrect size.
     BadNonceLength,
+    /// When the key is of an incorrect size.
     BadKeyLength,
+    /// When the token has exceeded its TTL.
     ExpiredToken,
+    /// When the decryption of the ciphertext has failed. 
     DecryptFailed,
 }
 
@@ -30,4 +37,5 @@ impl StdErr for Error {
     }
 }
 
+/// Alias for `Result<T, Error>` used in the Branca module.
 pub type Result<T> = result::Result<T, Error>;
