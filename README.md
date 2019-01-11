@@ -38,24 +38,38 @@ use branca::{Branca, encode, decode};
 
 # Example Usage
 
-## Encoding
+The simplest way to use this crate is to use `Branca::new()` in this example below:
+
+```rust
+    let key = b"supersecretkeyyoushouldnotcommit".to_vec();
+    let token = Branca::new(&key).unwrap();
+    let ciphertext = token.encode("Hello World!").unwrap();
+
+    let payload = token.decode(ciphertext.as_str(), 0).unwrap();
+    println("{}", payload); // "Hello World!"
+```
+
+See more examples of setting fields in the [Branca struct](https://docs.rs/branca/) and in the [Documentation section.](https://docs.rs/branca/struct.Branca.html)
+
+## Direct usage without Branca builder.
+### Encoding:
 ```rust
 let key = b"supersecretkeyyoushouldnotcommit".to_vec();
 let nonce = *b"\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c";
 
 let message = "Hello world!";
 let timestamp = 123206400;
-let branca_token = encode(message,key,nonce,timestamp).unwrap();
+let branca_token = encode(message,&key,&nonce,timestamp).unwrap();
 
 // branca_token = 875GH233T7IYrxtgXxlQBYiFobZMQdHAT51vChKsAIYCFxZtL1evV54vYqLyZtQ0ekPHt8kJHQp0a
 ```
 
-## Decoding
+### Decoding:
 ```rust
 let ciphertext = branca_token.as_str();
 let key = b"supersecretkeyyoushouldnotcommit".to_vec();
 let ttl = 0; // The ttl can be used to determine if the supplied token has expired or not.
-let decoded = decode(ciphertext, key, ttl);
+let decoded = decode(ciphertext, &key, ttl);
 
 if decoded.is_err() {
     // Error
@@ -84,10 +98,8 @@ extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 extern crate branca;
-extern crate ring;
 
 use branca::{encode, decode};
-use ring::rand::{SystemRandom, SecureRandom};
 
 #[derive(Serialize, Deserialize, Debug)]
 struct User {
@@ -102,18 +114,15 @@ fn main(){
         "scope":["read", "write", "delete"],
     }).to_string();
 
-    // Generate Nonce (24 bytes in length)
-    let rand_nonce = SystemRandom::new();
-    let mut nonce = vec![0; 24];
-    rand_nonce.fill(nonce.as_mut()).unwrap();
-
+    let key = b"supersecretkeyyoushouldnotcommit".to_vec();
+    let token = Branca::new(&key).unwrap();
+    
     // Encode Message
-    let key = b"supersecretkeyyoushouldnotcommit";
-    let timestamp = 123206400;
-    let branca_token = encode(message.as_str(), key.to_vec(), nonce, timestamp).unwrap();
-
+    let branca_token = token.encode(message.as_str()).unwrap();
+    
     // Decode Message
-    let payload = decode(branca_token.as_str(), key.to_vec(), 0).unwrap();
+    let payload = token.decode(branca_token.as_str(), 0).unwrap();
+
     let json: User = serde_json::from_str(payload.as_str()).unwrap();
 
     println!("{}", branca_token);
@@ -122,7 +131,7 @@ fn main(){
 }
 ```
 
-You can use either Ring's SecureRandom or sodiumoxide's aead gen_nonce() or gen_key() for generating secure nonces and keys for example. 
+Branca uses the [Ring crate](https://github.com/briansmith/ring) as to generate secure random nonces. You can still use Ring's SecureRandom or sodiumoxide's aead gen_nonce() or gen_key() for generating secure nonces and keys for example. 
 
 But do note that the nonce **must be 24 bytes in length.** Keys **must be 32 bytes in length.**
 
