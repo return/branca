@@ -2,7 +2,7 @@ use std::{fmt, result};
 use std::error::Error as StdErr;
 
 /// The type of Branca errors that can occur when encoding or decoding Branca tokens. 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum Error {
     /// When the given input is not a valid Base62 encoding.
     InvalidBase62Token,
