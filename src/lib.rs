@@ -110,7 +110,7 @@ const NONCE_BYTES: usize = 24;
 // Base 62 alphabet.
 const BASE62: &str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-/// The Branca defines the structure of a Branca token for encoding and decoding.
+/// The Branca struct defines the structure of a Branca token for encoding and decoding.
 #[derive(Clone, PartialEq, Debug)]
 pub struct Branca {
     /// The Branca Key which is exactly 32 bytes in length.

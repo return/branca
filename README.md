@@ -49,7 +49,7 @@ The simplest way to use this crate is to use `Branca::new()` in this example bel
     println("{}", payload); // "Hello World!"
 ```
 
-See more examples of setting fields in the [Branca struct](https://docs.rs/branca/) and in the [Documentation section.](https://docs.rs/branca/struct.Branca.html)
+See more examples of setting fields in the [Branca struct](https://docs.rs/branca/) and in the [Documentation section.](https://docs.rs/branca/0.8.0/branca/struct.Branca.html)
 
 ## Direct usage without Branca builder.
 ### Encoding:
