@@ -1,4 +1,4 @@
-# branca
+# Branca - A secure alternative token format to JWT
 
 |Crate|Documentation|License|Travis
 |:---:|:-----------:|:-----------:|:-----------:|
@@ -13,17 +13,16 @@
 [travis-badge]: https://api.travis-ci.org/return/branca.svg?branch=master
 [travis-url]: https://travis-ci.org/return/branca
 
-Branca is a secure alternative token format to JWT. This implementation is written in pure Rust and uses the XChaCha20-Poly1305 AEAD (Authenticated Encryption with Associated Data) stream cipher for generating authenticated and encrypted tamper-proof tokens. More information about the branca token specification can be found here in [branca-spec.](
-https://github.com/tuupola/branca-spec/blob/master/README.md)
+Branca is a secure alternative token format to JWT. This implementation is written in pure Rust and uses the XChaCha20-Poly1305 AEAD (Authenticated Encryption with Associated Data) stream cipher for generating authenticated and encrypted tamper-proof tokens. More information about the branca token specification can be found here in [branca-spec.](https://github.com/tuupola/branca-spec/blob/master/README.md)
 
 # Requirements
 
-* Rust 1.18+
+* Rust 1.33
 * Cargo
 
 # Installation
 
-Add this line to your Cargo.toml under the dependencies section:
+Add this line into your Cargo.toml under the dependencies section:
 
 ```toml
 [dependencies]
@@ -78,6 +77,7 @@ if decoded.is_err() {
     // msg = "Hello world!"
 }
 ```
+
 ## Encode/Decode arbitrary data structures with Serde.
 Since Branca is able to work with any format of data in the payload, it is possible for the payload to be anything from a JSON object, plaintext, raw bytes, protocol buffers or even a JWT.
 

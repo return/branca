@@ -156,14 +156,13 @@ impl Branca {
         SystemRandom::new().fill(nonce.as_mut()).unwrap();
 
         // Generate a timestamp instead of a zero supplied one.
-        let ts = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).expect("Failed to obtain timestamp from system clock.");
-        let timestamp = ts.as_secs() as u32;
+        let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).expect("Failed to obtain timestamp from system clock.").as_nanos() as u32;
 
         Ok(Branca {
             key: key.to_vec(),
             nonce,
             ttl: 0,
-            timestamp
+            timestamp: timestamp
         })
     }
 
@@ -471,11 +470,9 @@ pub fn decode(data: &str, key: &[u8], ttl: u32) -> Result<String, BrancaError> {
 
     // TTL check to determine if the token has expired.
      if ttl != 0 {
-         let future = u64::from(timestamp + ttl);
-         let time_now = SystemTime::now();
-         let ts_seconds = time_now.duration_since(UNIX_EPOCH).expect("Failed to obtain timestamp from system clock.");
-         let timestamp_now = ts_seconds.as_secs();
-         if future < timestamp_now {
+         let future = timestamp + ttl;
+         let now = SystemTime::now().duration_since(UNIX_EPOCH).expect("Failed to obtain timestamp from system clock.").as_nanos() as u32;
+         if future < now {
              return Err(BrancaError::ExpiredToken);
          }
     }
