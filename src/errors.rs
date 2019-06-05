@@ -1,7 +1,7 @@
-use std::{fmt, result};
 use std::error::Error as StdErr;
+use std::{fmt, result};
 
-/// The type of Branca errors that can occur when encoding or decoding Branca tokens. 
+/// The type of Branca errors that can occur when encoding or decoding Branca tokens.
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum Error {
     /// When the given input is not a valid Base62 encoding.
@@ -14,8 +14,10 @@ pub enum Error {
     BadKeyLength,
     /// When the token has exceeded its TTL.
     ExpiredToken,
-    /// When the decryption of the ciphertext has failed. 
+    /// When the decryption of the ciphertext has failed.
     DecryptFailed,
+    /// When encryption of the plaintext has failed.
+    EncryptFailed,
 }
 
 impl fmt::Display for Error {
@@ -32,7 +34,8 @@ impl StdErr for Error {
             Error::BadNonceLength => "Bad nonce length.",
             Error::BadKeyLength => "Bad key length.",
             Error::ExpiredToken => "This token has expired.",
-            Error::DecryptFailed => "Decryption failed."
+            Error::DecryptFailed => "Decryption failed.",
+            Error::EncryptFailed => "Encryption failed.",
         }
     }
 }
