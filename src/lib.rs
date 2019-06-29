@@ -132,11 +132,7 @@ pub struct Branca {
 impl PartialEq for Branca {
     fn eq(&self, other: &Branca) -> bool {
         let key_eq: bool =
-            if orion::util::secure_cmp(self.key[..].as_ref(), other.key[..].as_ref()).is_ok() {
-                true
-            } else {
-                false
-            };
+            orion::util::secure_cmp(self.key[..].as_ref(), other.key[..].as_ref()).is_ok();
 
         (key_eq
             & (self.nonce == other.nonce)
@@ -148,9 +144,10 @@ impl PartialEq for Branca {
 impl core::fmt::Debug for Branca {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         write!(
-			f,
-			"Branca {{ key: [SECRET VALUE], nonce: {:?}, ttl: {:?},
-            timestamp: {:?} }}", self.nonce, self.ttl, self.timestamp
+            f,
+            "Branca {{ key: [SECRET VALUE], nonce: {:?}, ttl: {:?},
+            timestamp: {:?} }}",
+            self.nonce, self.ttl, self.timestamp
         )
     }
 }
