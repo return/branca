@@ -97,10 +97,10 @@ pub mod errors;
 use self::errors::Error as BrancaError;
 use base_x::{decode as b62_decode, encode as b62_encode};
 use byteorder::*;
+use orion::errors::UnknownCryptoError;
 use orion::hazardous::aead::xchacha20poly1305::*;
 use orion::hazardous::stream::chacha20::CHACHA_KEYSIZE;
 use orion::hazardous::stream::xchacha20::XCHACHA_NONCESIZE;
-use orion::errors::UnknownCryptoError;
 use orion::util::secure_rand_bytes;
 use std::str;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -240,7 +240,7 @@ impl Branca {
             timestamp = ts.as_secs() as u32;
         }
         let crypted = encode(message, &self.key, &self.nonce, timestamp);
-        
+
         Ok(crypted.unwrap())
     }
     /// Decodes a Branca token with the provided key in the struct.
@@ -295,15 +295,14 @@ impl Branca {
 ///
 /// * The nonce must be 24 bytes in length, otherwise it returns a `BrancaError::BadNonceLength` Result.
 pub fn encode(data: &str, key: &[u8], nonce: &[u8], timestamp: u32) -> Result<String, BrancaError> {
-
     let sk: SecretKey = match SecretKey::from_slice(key) {
         Ok(key) => key,
-        Err(UnknownCryptoError) => return Err(BrancaError::BadKeyLength)
+        Err(UnknownCryptoError) => return Err(BrancaError::BadKeyLength),
     };
-    
+
     let n: Nonce = match Nonce::from_slice(nonce) {
         Ok(nonce) => nonce,
-        Err(UnknownCryptoError) => return Err(BrancaError::BadNonceLength)
+        Err(UnknownCryptoError) => return Err(BrancaError::BadNonceLength),
     };
 
     // Version || Timestamp || Nonce
@@ -356,10 +355,9 @@ pub fn encode(data: &str, key: &[u8], nonce: &[u8], timestamp: u32) -> Result<St
 ///
 /// * If the input is not in Base62 format, it returns a `BrancaError::InvalidBase62Token` Result.
 pub fn decode(data: &str, key: &[u8], ttl: u32) -> Result<String, BrancaError> {
-    
     let sk: SecretKey = match SecretKey::from_slice(key) {
         Ok(key) => key,
-        Err(UnknownCryptoError) => return Err(BrancaError::BadKeyLength)
+        Err(UnknownCryptoError) => return Err(BrancaError::BadKeyLength),
     };
 
     if data.len() < 62 {
