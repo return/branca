@@ -384,7 +384,7 @@ pub fn decode(data: &str, key: &[u8], ttl: u32) -> Result<String, BrancaError> {
 
     // TTL check to determine if the token has expired.
     if ttl != 0 {
-        let future = timestamp + ttl;
+        let future = timestamp.checked_add(ttl).expect("TTL too high.");
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("Failed to obtain timestamp from system clock.")
@@ -396,7 +396,6 @@ pub fn decode(data: &str, key: &[u8], ttl: u32) -> Result<String, BrancaError> {
 
     // Create the key given from the input.
     let n: Nonce = Nonce::from_slice(decoded_data[5..29].as_ref()).unwrap();
-
     let mut buf_crypt = vec![0u8; decoded_data.len() - 16 - 29];
 
     match open(
