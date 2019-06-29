@@ -111,7 +111,7 @@ const VERSION: u8 = 0xBA;
 const BASE62: &str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 /// The Branca struct defines the structure of a Branca token for encoding and decoding.
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone)]
 pub struct Branca {
     /// The Branca Key which is exactly 32 bytes in length.
     key: Vec<u8>,
@@ -127,6 +127,32 @@ pub struct Branca {
     ///
     /// This is used together with the `ttl` to check if the token has expired or not.
     timestamp: u32,
+}
+
+impl PartialEq for Branca {
+    fn eq(&self, other: &Branca) -> bool {
+        let key_eq: bool =
+            if orion::util::secure_cmp(self.key[..].as_ref(), other.key[..].as_ref()).is_ok() {
+                true
+            } else {
+                false
+            };
+
+        (key_eq
+            & (self.nonce == other.nonce)
+            & (self.ttl == other.ttl)
+            & (self.timestamp == other.timestamp))
+    }
+}
+
+impl core::fmt::Debug for Branca {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        write!(
+			f,
+			"Branca {{ key: [SECRET VALUE], nonce: {:?}, ttl: {:?},
+            timestamp: {:?} }}", self.nonce, self.ttl, self.timestamp
+        )
+    }
 }
 
 impl Branca {
