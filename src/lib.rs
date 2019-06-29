@@ -162,7 +162,7 @@ impl Branca {
             key: key.to_vec(),
             nonce,
             ttl: 0,
-            timestamp: timestamp,
+            timestamp,
         })
     }
 
@@ -231,7 +231,7 @@ impl Branca {
     /// ```
     pub fn encode(&self, message: &str) -> Result<String, BrancaError> {
         let mut timestamp = self.timestamp;
-        if timestamp <= 0 {
+        if timestamp == 0 {
             // Generate a timestamp instead of a zero supplied one.
             let ts = SystemTime::now()
                 .duration_since(SystemTime::UNIX_EPOCH)
@@ -239,7 +239,8 @@ impl Branca {
             timestamp = ts.as_secs() as u32;
         }
         let crypted = encode(message, &self.key, &self.nonce, timestamp);
-        return Ok(crypted.unwrap());
+        
+        Ok(crypted.unwrap())
     }
     /// Decodes a Branca token with the provided key in the struct.
     ///
@@ -272,7 +273,7 @@ impl Branca {
     ///}
     /// ```
     pub fn decode(&self, ciphertext: &str, ttl: u32) -> Result<String, BrancaError> {
-        return decode(ciphertext, &self.key, ttl);
+        decode(ciphertext, &self.key, ttl)
     }
 }
 /// Encodes the message and returns a Branca Token as a String.
@@ -333,7 +334,7 @@ pub fn encode(data: &str, key: &[u8], nonce: &[u8], timestamp: u32) -> Result<St
     let b62_enc = b62_encode(BASE62, buf_crypt.as_ref());
 
     // Return the branca token as a string.
-    return Ok(b62_enc);
+    Ok(b62_enc)
 }
 
 /// Decodes a Branca token and returns the plaintext as a String.
@@ -406,7 +407,7 @@ pub fn decode(data: &str, key: &[u8], ttl: u32) -> Result<String, BrancaError> {
         &sk,
         &n,
         decoded_data[29..].as_ref(),
-        Some(header.as_ref()),
+        Some(header),
         &mut buf_crypt,
     ) {
         Ok(()) => (),
@@ -414,5 +415,5 @@ pub fn decode(data: &str, key: &[u8], ttl: u32) -> Result<String, BrancaError> {
     };
 
     // Return the plaintext.
-    return Ok(String::from_utf8_lossy(&buf_crypt).into());
+    Ok(String::from_utf8_lossy(&buf_crypt).into())
 }
