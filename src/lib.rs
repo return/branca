@@ -100,6 +100,7 @@ use byteorder::*;
 use orion::hazardous::aead::xchacha20poly1305::*;
 use orion::hazardous::stream::chacha20::CHACHA_KEYSIZE;
 use orion::hazardous::stream::xchacha20::XCHACHA_NONCESIZE;
+use orion::errors::UnknownCryptoError;
 use orion::util::secure_rand_bytes;
 use std::str;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -294,19 +295,16 @@ impl Branca {
 ///
 /// * The nonce must be 24 bytes in length, otherwise it returns a `BrancaError::BadNonceLength` Result.
 pub fn encode(data: &str, key: &[u8], nonce: &[u8], timestamp: u32) -> Result<String, BrancaError> {
-    // Check the nonce length before going any further.
-    if nonce.len() != XCHACHA_NONCESIZE {
-        return Err(BrancaError::BadNonceLength);
-    }
 
-    // Check the key length before going any further.
-    if key.len() != CHACHA_KEYSIZE {
-        return Err(BrancaError::BadKeyLength);
-    }
-
-    // unwrap() cannot panic due to above length validation.
-    let sk: SecretKey = SecretKey::from_slice(key).unwrap();
-    let n: Nonce = Nonce::from_slice(nonce).unwrap();
+    let sk: SecretKey = match SecretKey::from_slice(key) {
+        Ok(key) => key,
+        Err(UnknownCryptoError) => return Err(BrancaError::BadKeyLength)
+    };
+    
+    let n: Nonce = match Nonce::from_slice(nonce) {
+        Ok(nonce) => nonce,
+        Err(UnknownCryptoError) => return Err(BrancaError::BadNonceLength)
+    };
 
     // Version || Timestamp || Nonce
     let mut header = [0u8; 29];
@@ -323,11 +321,11 @@ pub fn encode(data: &str, key: &[u8], nonce: &[u8], timestamp: u32) -> Result<St
         &sk,
         &n,
         data.as_bytes(),
-        Some(&header),
+        Some(header.as_ref()),
         &mut buf_crypt[29..],
     ) {
         Ok(()) => (),
-        Err(orion::errors::UnknownCryptoError) => return Err(BrancaError::EncryptFailed),
+        Err(UnknownCryptoError) => return Err(BrancaError::EncryptFailed),
     };
 
     // Our payload is now encoded into base62.
@@ -358,10 +356,11 @@ pub fn encode(data: &str, key: &[u8], nonce: &[u8], timestamp: u32) -> Result<St
 ///
 /// * If the input is not in Base62 format, it returns a `BrancaError::InvalidBase62Token` Result.
 pub fn decode(data: &str, key: &[u8], ttl: u32) -> Result<String, BrancaError> {
-    // The key must be 32 bytes in size.
-    if key.len() != CHACHA_KEYSIZE {
-        return Err(BrancaError::BadKeyLength);
-    }
+    
+    let sk: SecretKey = match SecretKey::from_slice(key) {
+        Ok(key) => key,
+        Err(UnknownCryptoError) => return Err(BrancaError::BadKeyLength)
+    };
 
     if data.len() < 62 {
         return Err(BrancaError::InvalidBase62Token);
@@ -398,7 +397,6 @@ pub fn decode(data: &str, key: &[u8], ttl: u32) -> Result<String, BrancaError> {
     }
 
     // Create the key given from the input.
-    let sk: SecretKey = SecretKey::from_slice(key).unwrap();
     let n: Nonce = Nonce::from_slice(decoded_data[5..29].as_ref()).unwrap();
 
     let mut buf_crypt = vec![0u8; decoded_data.len() - 16 - 29];
