@@ -54,13 +54,12 @@ See more examples of setting fields in the [Branca struct](https://docs.rs/branc
 ### Encoding:
 ```rust
 let key = b"supersecretkeyyoushouldnotcommit".to_vec();
-let nonce = *b"\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c";
 
 let message = "Hello world!";
 let timestamp = 123206400;
-let branca_token = encode(message,&key,&nonce,timestamp).unwrap();
+let branca_token = encode(message,&key,timestamp).unwrap();
 
-// branca_token = 875GH233T7IYrxtgXxlQBYiFobZMQdHAT51vChKsAIYCFxZtL1evV54vYqLyZtQ0ekPHt8kJHQp0a
+// branca_token = 875GH233T7.......
 ```
 
 ### Decoding:

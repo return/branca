@@ -57,7 +57,6 @@ this is a builder method.
 ...
 let ciphertext = token
                 .set_timestamp(1234567890)
-                .set_nonce(&nonce)
                 .set_key(&key)
                 .encode("Hello World!").unwrap();
 ...
@@ -219,13 +218,6 @@ impl Branca {
         self.key = key;
         self
     }
-    /// Sets the nonce used for encryption and decryption the input.
-    ///
-    /// Must be 24 bytes in length.
-    pub fn set_nonce(&mut self, nonce: Vec<u8>) -> &mut Self {
-        self.nonce = nonce;
-        self
-    }
     /// Sets the TTL used for token expiration.
     pub fn set_ttl(&mut self, ttl: u32) -> &mut Self {
         self.ttl = ttl;
@@ -262,7 +254,7 @@ impl Branca {
                 .expect("Failed to obtain timestamp from system clock.");
             timestamp = ts.as_secs() as u32;
         }
-        let crypted = encode(message, &self.key, &self.nonce, timestamp);
+        let crypted = encode(message, &self.key, timestamp);
 
         Ok(crypted.unwrap())
     }
@@ -308,22 +300,23 @@ impl Branca {
 ///
 /// `key` - The key to use for encryption.
 ///
-/// `nonce` - The nonce to be used for encryption.
-///
 /// `timestamp` - The timestamp at which the token was created.
 ///
 /// Note:
 ///
 /// * The key must be 32 bytes in length, otherwise it returns a `BrancaError::BadKeyLength` Result.
 ///
-/// * The nonce must be 24 bytes in length, otherwise it returns a `BrancaError::BadNonceLength` Result.
-pub fn encode(data: &str, key: &[u8], nonce: &[u8], timestamp: u32) -> Result<String, BrancaError> {
+/// * The generated nonce is 24 bytes in length, otherwise it returns a `BrancaError::BadNonceLength` Result.
+pub fn encode(data: &str, key: &[u8], timestamp: u32) -> Result<String, BrancaError> {
     let sk: SecretKey = match SecretKey::from_slice(key) {
         Ok(key) => key,
         Err(UnknownCryptoError) => return Err(BrancaError::BadKeyLength),
     };
 
-    let n: Nonce = match Nonce::from_slice(nonce) {
+    let mut nonce = vec![0; XCHACHA_NONCESIZE];
+    secure_rand_bytes(&mut nonce).unwrap();
+
+    let n: Nonce = match Nonce::from_slice(nonce.as_slice()) {
         Ok(nonce) => nonce,
         Err(UnknownCryptoError) => return Err(BrancaError::BadNonceLength),
     };

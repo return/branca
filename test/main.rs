@@ -14,7 +14,6 @@ mod branca_unit_tests {
 
     use branca::errors::Error as BrancaError;
     use branca::{decode, encode, Branca};
-    use orion::util::secure_rand_bytes;
     use serde_json;
 
     #[derive(Serialize, Deserialize, Debug)]
@@ -23,20 +22,12 @@ mod branca_unit_tests {
         b: bool,
     }
 
-    const NONCE_BYTES: [u8;24] = *b"\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c";
-
     #[test]
-    pub fn test_encode() {
-        let keygen = b"supersecretkeyyoushouldnotcommit".to_vec();
-        let message = "Hello world!";
-        let nonce = NONCE_BYTES.to_vec();
-        let timestamp = 123206400;
-        let branca_token = encode(message, &keygen, &nonce, timestamp).unwrap();
-
-        assert_eq!(
-            branca_token,
-            "875GH233T7IYrxtgXxlQBYiFobZMQdHAT51vChKsAIYCFxZtL1evV54vYqLyZtQ0ekPHt8kJHQp0a"
-        );
+    pub fn test_encode_builder() {
+        let key = b"supersecretkeyyoushouldnotcommit".to_vec();
+        let mut token = Branca::new(&key).unwrap();
+        let ciphertext = token.set_timestamp(123206400).encode("Test");
+        assert_eq!(ciphertext.is_ok(), true);
     }
 
     #[test]
@@ -52,12 +43,10 @@ mod branca_unit_tests {
     #[test]
     pub fn test_encode_and_decode() {
         let message = "Hello world!";
-        let nonce = NONCE_BYTES.to_vec();
         let timestamp = 123206400;
         let branca_token = encode(
             message,
             &b"supersecretkeyyoushouldnotcommit".to_vec(),
-            &nonce,
             timestamp,
         )
         .unwrap();
@@ -76,13 +65,10 @@ mod branca_unit_tests {
     #[test]
     pub fn test_encode_and_decode_random_nonce() {
         let message = "Hello world!";
-        let mut buf_nonce = vec![0; 24];
-        secure_rand_bytes(&mut buf_nonce).unwrap();
         let timestamp = 123206400;
         let branca_token = encode(
             message,
             &b"supersecretkeyyoushouldnotcommit".to_vec(),
-            &buf_nonce,
             timestamp,
         )
         .unwrap();
@@ -102,12 +88,10 @@ mod branca_unit_tests {
     pub fn test_encode_and_decode_json() {
         let literal_json = json!({ "a": "some string", "b": false });
         let message = literal_json.to_string();
-        let nonce = NONCE_BYTES.to_vec();
         let timestamp = 123206400;
         let branca_token = encode(
             message.as_str(),
             &b"supersecretkeyyoushouldnotcommit".to_vec(),
-            &nonce,
             timestamp,
         )
         .unwrap();
@@ -129,12 +113,10 @@ mod branca_unit_tests {
                  "a":"some string",
                  "b":false
           }"#;
-        let nonce = NONCE_BYTES.to_vec();
         let timestamp = 123206400;
         let branca_token = encode(
             message,
             &b"supersecretkeyyoushouldnotcommit".to_vec(),
-            &nonce,
             timestamp,
         )
         .unwrap();
@@ -170,21 +152,6 @@ mod branca_unit_tests {
             Err(e) => assert_eq!(e, BrancaError::ExpiredToken),
             Ok(_) => {}
         }
-    }
-
-    #[test]
-    pub fn test_encode_builder_get_and_set() {
-        let mut token = Branca::new(&b"supersecretkeyyoushouldnotcommit".to_vec()).unwrap();
-        let s = token
-            .set_nonce(NONCE_BYTES.to_vec())
-            .set_timestamp(123206400)
-            .set_ttl(0)
-            .encode("Hello world!");
-
-        assert_eq!(
-            s.unwrap(),
-            "875GH233T7IYrxtgXxlQBYiFobZMQdHAT51vChKsAIYCFxZtL1evV54vYqLyZtQ0ekPHt8kJHQp0a"
-        );
     }
 
     #[test]
@@ -229,26 +196,11 @@ mod branca_unit_tests {
     }
 
     #[test]
-    pub fn test_bad_nonce() {
-        let keygen = b"supersecretkeyyoushouldnotcommit".to_vec();
-        let message = "Hello world!";
-        let nonce = Vec::from("\x01\x02\x03\x04\x05");
-        let timestamp = 123206400;
-        let branca_token = encode(message, &keygen, &nonce, timestamp);
-
-        match branca_token {
-            Err(e) => assert_eq!(e, BrancaError::BadNonceLength),
-            Ok(_) => {}
-        }
-    }
-
-    #[test]
     pub fn test_bad_key() {
         let keygen = b"supersecretkey".to_vec();
         let message = "Hello world!";
-        let nonce = NONCE_BYTES.to_vec();
         let timestamp = 123206400;
-        let branca_token = encode(message, &keygen, &nonce, timestamp);
+        let branca_token = encode(message, &keygen, timestamp);
 
         match branca_token {
             Err(e) => assert_eq!(e, BrancaError::BadKeyLength),
