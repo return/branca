@@ -15,6 +15,12 @@
 
 Branca is a secure alternative token format to JWT. This implementation is written in pure Rust and uses the XChaCha20-Poly1305 AEAD (Authenticated Encryption with Associated Data) stream cipher for generating authenticated and encrypted tamper-proof tokens. More information about the branca token specification can be found here in [branca-spec.](https://github.com/tuupola/branca-spec/blob/master/README.md)
 
+# Security
+
+_NOTE: Branca uses orion for its cryptographic primitives and due to orion not recieving any formal security audit, the same security risks that orion has also applies to this Branca implementation if one uses it in production. For a better understanding about the security risks involved, see the orion [wiki](https://github.com/brycx/orion/wiki/Security)._
+
+**⚠️ Use at your own risk. ⚠️**
+
 # Requirements
 
 * Rust 1.33
