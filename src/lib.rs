@@ -62,19 +62,18 @@ let ciphertext = token
 ...
 ```
 It is also possible to directly encode and decode functions without using the builder function.
-In this example I'm using ring for random number generation. You can use alternative CSRNG crates
-such as the rand crate or sodiumoxide.
+
+Please note that Branca uses [Orion](https://github.com/brycx/orion) to generate secure random nonces
+when using the encode() and builder methods. By default, Branca does not allow setting the nonce directly
+since that there is a risk that it can be reused by the user which is a foot-gun.
+
 ```rust
-extern crate ring;
+extern crate branca;
 
 use branca::{encode, decode};
-use ring::rand::SystemRandom;
 ...
 let key = b"supersecretkeyyoushouldnotcommit".to_vec();
-let mut nonce = vec![0; 24];
-SystemRandom::new().fill(nonce.as_mut()).unwrap();
-
-let token = encode("Hello World!", &keygen, &nonce, 123206400).unwrap();
+let token = encode("Hello World!", &keygen, 123206400).unwrap();
 // token = "875G...p0a"
 
 let ttl = 3600;

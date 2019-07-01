@@ -88,7 +88,6 @@ Add the following into your Cargo.toml file:
 branca = "^0.8.0"
 serde_json = "^1.0"
 serde_derive = "1.0.83"
-ring = "0.13.5"
 ```
 
 ```rust
@@ -130,9 +129,9 @@ fn main(){
 }
 ```
 
-Branca uses the [Ring crate](https://github.com/briansmith/ring) as to generate secure random nonces. You can still use Ring's SecureRandom or sodiumoxide's aead gen_nonce() or gen_key() for generating secure nonces and keys for example. 
+Branca uses [Orion](https://github.com/brycx/orion) to generate secure random nonces when using the encode() and builder methods. By default, Branca does not allow setting the nonce directly since that there is a risk that it can be reused by the user which is a foot-gun.
 
-But do note that the nonce **must be 24 bytes in length.** Keys **must be 32 bytes in length.**
+The nonce generated **must be 24 bytes in length.** Keys **must be 32 bytes in length.**
 
 # Building
 `cargo build`
