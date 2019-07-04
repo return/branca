@@ -312,14 +312,8 @@ pub fn encode(data: &str, key: &[u8], timestamp: u32) -> Result<String, BrancaEr
         Err(UnknownCryptoError) => return Err(BrancaError::BadKeyLength),
     };
 
-    let mut nonce = vec![0; XCHACHA_NONCESIZE];
-    secure_rand_bytes(&mut nonce).unwrap();
-
-    let n: Nonce = match Nonce::from_slice(nonce.as_slice()) {
-        Ok(nonce) => nonce,
-        Err(UnknownCryptoError) => return Err(BrancaError::BadNonceLength),
-    };
-
+    // Use CSPRNG to generate a unique nonce.
+    let n = Nonce::generate();
     // Version || Timestamp || Nonce
     let mut header = [0u8; 29];
 
