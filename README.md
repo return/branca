@@ -32,7 +32,7 @@ Add this line into your Cargo.toml under the dependencies section:
 
 ```toml
 [dependencies]
-branca = "^0.8.0"
+branca = "^0.9.0"
 ```
 
 Then you can import the crate into your project with these lines:
@@ -91,9 +91,10 @@ Here is a example of using Branca to encode/decode a typical JSON object with se
 Add the following into your Cargo.toml file:
 ```toml
 [dependencies]
-branca = "^0.8.0"
+branca = "^0.9.0"
 serde_json = "^1.0"
-serde_derive = "1.0.83"
+serde_derive = "1.0.97"
+
 ```
 
 ```rust
