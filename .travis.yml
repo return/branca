@@ -12,6 +12,5 @@ dist: xenial
 
 script:
   - cargo build --verbose
-  - cargo build --examples
-  - cargo test --examples
+  - cargo test
   - cargo doc

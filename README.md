@@ -143,12 +143,12 @@ The nonce generated **must be 24 bytes in length.** Keys **must be 32 bytes in l
 `cargo build`
 
 # Testing
-`cargo test --examples`
+`cargo test`
 
 # Contributing
 Contributions and patches are welcome! Fork this repository, add your changes and send a PR.
 
-Before you send a PR, make sure you run `cargo test --examples` first to check if your changes pass the tests.
+Before you send a PR, make sure you run `cargo test` first to check if your changes pass the tests.
 
 If you would like to fix a bug or add a enhancement, please do so in the issues section and provide a short description about your changes.
 
