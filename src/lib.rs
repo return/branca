@@ -11,15 +11,13 @@ for encryption and decryption and uses Base62 instead of Base64 for encoding the
 
 A Branca token is encrypted then encoded into Base62, and looks like this:
 
-```rust
-875GH233T7IYrxtgXxlQBYiFobZMQdHAT51vChKsAIYCFxZtL1evV54vYqLyZtQ0ekPHt8kJHQp0a
-```
+`875GH233T7IYrxtgXxlQBYiFobZMQdHAT51vChKsAIYCFxZtL1evV54vYqLyZtQ0ekPHt8kJHQp0a`
+
 
 The internal format of a Branca token looks like this:
 
-```rust
-Version (1B) || Timestamp (4B) || Nonce (24B) || Ciphertext (*B) || Tag (16B)
-```
+`Version (1B) || Timestamp (4B) || Nonce (24B) || Ciphertext (*B) || Tag (16B)`
+
 
 The payload/ciphertext size can be of any arbitrary length, this means that contents of the payload can be anything from Text,
 [JSON](https://en.wikipedia.org/wiki/JSON), [MessagePacks](http://msgpack.org/), [JWTs](https://jwt.io/), URLs, etc.
@@ -46,21 +44,39 @@ fn main() {
     let ciphertext = token.encode("Hello World!").unwrap();
 
     let payload = token.decode(ciphertext.as_str(), 0).unwrap();
-    println("{}", payload); // "Hello World!"
+    println!("{}", payload); // "Hello World!"
 }
 ```
 
 You can also decide to set the other fields in the token before encoding it if you want to since
 this is a builder method.
 
+
 ```rust
-...
-let ciphertext = token
-                .set_timestamp(1234567890)
-                .set_key(&key)
-                .encode("Hello World!").unwrap();
-...
+extern crate branca;
+
+use branca::Branca;
+
+fn main() {
+    let key = b"supersecretkeyyoushouldnotcommit".to_vec();
+    let mut token = Branca::new(&key).unwrap();
+
+    // You are able to use the builder to set the timestamp, ttL and the key.
+    // However, the nonce cannot be set, as that is a security risk for
+    // nonce-reuse misuse.
+
+    // All properties inside of the token can be retrieved.
+
+    let ciphertext = token
+                      .set_timestamp(1234567890)
+                      .set_key(key)
+                      .set_ttl(300);
+                      //.encode("Hello World!").unwrap();
+
+    let timestamp = token.timestamp(); // 1234567890
+}
 ```
+
 It is also possible to directly encode and decode functions without using the builder function.
 
 Please note that Branca uses [Orion](https://github.com/brycx/orion) to generate secure random nonces
@@ -71,18 +87,18 @@ since that there is a risk that it can be reused by the user which is a foot-gun
 extern crate branca;
 
 use branca::{encode, decode};
-...
+
 let key = b"supersecretkeyyoushouldnotcommit".to_vec();
-let token = encode("Hello World!", &keygen, 123206400).unwrap();
+let token = encode("Hello World!", &key, 123206400).unwrap();
 // token = "875G...p0a"
 
 let ttl = 3600;
 // The token will expire at timestamp + ttl
-let payload = decode(token.as_str(), &keygen, 0).unwrap();
+let payload = decode(token.as_str(), &key, 0).unwrap();
 
-println!({}, payload);
-// payload = "Hello World!".
-...
+println!("{}", payload);
+// payload = "Hello World!"
+
 ```
 */
 
@@ -165,8 +181,8 @@ impl Branca {
     /// `key` - The key to be used for encrypting and decrypting the input.
     ///
     ///```rust
-    /// extern crate branca
-    /// use branca::Branca
+    /// extern crate branca;
+    /// use branca::Branca;
     ///
     /// fn main() {
     ///        let key = b"supersecretkeyyoushouldnotcommit".to_vec();
@@ -248,9 +264,11 @@ impl Branca {
     /// use branca::Branca;
     ///
     /// fn main() {
-    ///     let token = Branca::new(&b"supersecretkeyyoushouldnotcommit".to_vec());
-    ///     let crypted = token.encode("Hello World!").unwrap();
-    ///     // Branca token is now in 'crypted' as a String.
+    ///     let key = b"supersecretkeyyoushouldnotcommit".to_vec();
+    ///     let token = Branca::new(&key).unwrap();
+    ///
+    ///     let ciphertext = token.encode("Hello World!").unwrap();
+    ///     // Branca token is now in 'ciphertext' as a String.
     /// }
     /// ```
     pub fn encode(&self, message: &str) -> Result<String, BrancaError> {
@@ -277,24 +295,24 @@ impl Branca {
     ///
     ///# Example
     ///```rust
-    ///extern crate branca;
-    ///use branca::Branca;
+    /// extern crate branca;
+    /// use branca::Branca;
     ///
-    ///fn main() {
-    ///    let token = Branca::new(&b"supersecretkeyyoushouldnotcommit".to_vec());
-    ///    let crypted = token.encode("Hello World!").unwrap();
-    ///    // Branca token is now in 'crypted' as a String.
+    /// fn main() {
+    ///     let token = Branca::new(&b"supersecretkeyyoushouldnotcommit".to_vec()).unwrap();
+    ///     let crypted = token.encode("Hello World!").unwrap();
+    ///     // Branca token is now in 'crypted' as a String.
     ///    
-    ///    let decrypted = token.decode(crypted.as_str(), 3600);
-    ///    let mut :String payload = Default::default();
+    ///     let decrypted = token.decode(crypted.as_str(), 3600);
+    ///     let mut payload: String  = Default::default();
     ///
-    ///    if decrypted.is_err() {
+    ///     if decrypted.is_err() {
     ///       // Something went wrong here...
-    ///    } else {
-    ///      payload = decrypted.unwrap();
-    ///     // payload now contains "Hello World!"
-    ///   }
-    ///}
+    ///     } else {
+    ///       payload = decrypted.unwrap();
+    ///      // payload now contains "Hello World!"
+    ///     }
+    /// }
     /// ```
     pub fn decode(&self, ciphertext: &str, ttl: u32) -> Result<String, BrancaError> {
         decode(ciphertext, &self.key, ttl)
