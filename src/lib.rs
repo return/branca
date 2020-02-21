@@ -420,11 +420,11 @@ pub fn decode(data: &str, key: &[u8], ttl: u32) -> Result<String, BrancaError> {
 
     // TTL check to determine if the token has expired.
     if ttl != 0 {
-        let future = timestamp.checked_add(ttl).expect("TTL too high.");
+        let future = timestamp.checked_add(ttl).expect("TTL too high.") as u64;
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("Failed to obtain timestamp from system clock.")
-            .as_nanos() as u32;
+            .as_secs();
         if future < now {
             return Err(BrancaError::ExpiredToken);
         }
@@ -486,7 +486,7 @@ mod unit_tests {
             &b"supersecretkeyyoushouldnotcommit".to_vec(),
             timestamp,
         )
-            .unwrap();
+        .unwrap();
 
         assert_eq!(
             decode(
@@ -494,7 +494,7 @@ mod unit_tests {
                 &b"supersecretkeyyoushouldnotcommit".to_vec(),
                 0
             )
-                .unwrap(),
+            .unwrap(),
             "Hello world!"
         );
     }
@@ -508,7 +508,7 @@ mod unit_tests {
             &b"supersecretkeyyoushouldnotcommit".to_vec(),
             timestamp,
         )
-            .unwrap();
+        .unwrap();
 
         assert_eq!(
             decode(
@@ -516,7 +516,7 @@ mod unit_tests {
                 &b"supersecretkeyyoushouldnotcommit".to_vec(),
                 0
             )
-                .unwrap(),
+            .unwrap(),
             "Hello world!"
         );
     }
@@ -531,13 +531,13 @@ mod unit_tests {
             &b"supersecretkeyyoushouldnotcommit".to_vec(),
             timestamp,
         )
-            .unwrap();
+        .unwrap();
         let json = decode(
             branca_token.as_str(),
             &b"supersecretkeyyoushouldnotcommit".to_vec(),
             0,
         )
-            .unwrap();
+        .unwrap();
         let serialized_json: JSONTest = serde_json::from_str(json.as_str()).unwrap();
 
         assert_eq!(serialized_json.a, "some string");
@@ -556,13 +556,13 @@ mod unit_tests {
             &b"supersecretkeyyoushouldnotcommit".to_vec(),
             timestamp,
         )
-            .unwrap();
+        .unwrap();
         let json = decode(
             branca_token.as_str(),
             &b"supersecretkeyyoushouldnotcommit".to_vec(),
             0,
         )
-            .unwrap();
+        .unwrap();
         let serialized_json: JSONTest = serde_json::from_str(json.as_str()).unwrap();
 
         assert_eq!(serialized_json.a, "some string");
