@@ -23,7 +23,7 @@ _NOTE: Branca uses orion for its cryptographic primitives and due to orion not r
 
 # Requirements
 
-* Rust 1.33
+* Rust 1.37
 * Cargo
 
 # Installation
