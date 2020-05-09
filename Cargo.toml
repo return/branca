@@ -1,7 +1,7 @@
 [package]
 name = "branca"
 description = "Authenticated encrypted API tokens for Rust. A secure alternative to JWT."
-version = "0.9.0"
+version = "0.9.1"
 authors = ["return"]
 edition = "2018"
 keywords = ["fernet", "branca", "cryptography", "aead", "xchacha20_poly1305"]
