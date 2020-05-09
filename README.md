@@ -1,8 +1,8 @@
 # Branca - A secure alternative token format to JWT
 
-|Crate|Documentation|License|Travis
+|Crate|Documentation|License|CI
 |:---:|:-----------:|:-----------:|:-----------:|
-|[![Crates.io][crates-badge]][crates-url]|[![Docs][doc-badge]][doc-url]|[![License][license-badge]][license-url]|[![Travis-CI][travis-badge]][travis-url]
+|[![Crates.io][crates-badge]][crates-url]|[![Docs][doc-badge]][doc-url]|[![License][license-badge]][license-url]|[![CI][ci-badge]][ci-url]
 
 [crates-badge]: https://img.shields.io/crates/v/branca.svg
 [crates-url]: https://crates.io/crates/branca
@@ -10,8 +10,8 @@
 [doc-url]: https://docs.rs/branca
 [license-badge]: https://img.shields.io/badge/License-MIT-brightgreen.svg
 [license-url]: https://github.com/return/branca/blob/master/LICENSE
-[travis-badge]: https://api.travis-ci.org/return/branca.svg?branch=master
-[travis-url]: https://travis-ci.org/return/branca
+[ci-badge]: https://github.com/return/branca/workflows/CI/badge.svg
+[ci-url]: https://github.com/return/branca/actions
 
 Branca is a secure alternative token format to JWT. This implementation is written in pure Rust and uses the XChaCha20-Poly1305 AEAD (Authenticated Encryption with Associated Data) stream cipher for generating authenticated and encrypted tamper-proof tokens. More information about the branca token specification can be found here in [branca-spec.](https://github.com/tuupola/branca-spec/blob/master/README.md)
 

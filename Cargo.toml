@@ -12,7 +12,6 @@ documentation = "https://docs.rs/branca"
 repository = "https://github.com/return/branca"
 
 [badges]
-travis-ci = { repository = "return/branca", branch = "master" }
 maintenance = { status = "actively-developed" }
 
 [dependencies]
