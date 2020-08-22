@@ -157,10 +157,10 @@ impl PartialEq for Branca {
         let key_eq: bool =
             orion::util::secure_cmp(self.key[..].as_ref(), other.key[..].as_ref()).is_ok();
 
-        (key_eq
+        key_eq
             & (self.nonce == other.nonce)
             & (self.ttl == other.ttl)
-            & (self.timestamp == other.timestamp))
+            & (self.timestamp == other.timestamp)
     }
 }
 
@@ -416,20 +416,6 @@ pub fn decode(data: &str, key: &[u8], ttl: u32) -> Result<String, BrancaError> {
     }
 
     let header = &decoded_data[0..29];
-    let timestamp: u32 = BigEndian::read_u32(&decoded_data[1..5]);
-
-    // TTL check to determine if the token has expired.
-    if ttl != 0 {
-        let future = timestamp.checked_add(ttl).expect("TTL too high.") as u64;
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .expect("Failed to obtain timestamp from system clock.")
-            .as_secs();
-        if future < now {
-            return Err(BrancaError::ExpiredToken);
-        }
-    }
-
     let n: Nonce = Nonce::from_slice(decoded_data[5..29].as_ref()).unwrap();
     let mut buf_crypt = vec![0u8; decoded_data.len() - 16 - 29];
 
@@ -443,6 +429,20 @@ pub fn decode(data: &str, key: &[u8], ttl: u32) -> Result<String, BrancaError> {
         Ok(()) => (),
         Err(orion::errors::UnknownCryptoError) => return Err(BrancaError::DecryptFailed),
     };
+
+    let timestamp: u32 = BigEndian::read_u32(&decoded_data[1..5]);
+
+    // TTL check to determine if the token has expired.
+    if ttl != 0 {
+        let future = timestamp.checked_add(ttl).expect("TTL too high.") as u64;
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("Failed to obtain timestamp from system clock.")
+            .as_secs();
+        if future < now {
+            return Err(BrancaError::ExpiredToken);
+        }
+    }
 
     // Return the plaintext.
     Ok(String::from_utf8_lossy(&buf_crypt).into())
@@ -657,5 +657,23 @@ mod unit_tests {
             Err(e) => assert_eq!(e, BrancaError::InvalidTokenVersion),
             Ok(_) => {}
         }
+    }
+
+    #[test]
+    pub fn test_modified_timestamp_returns_bad_tag() {
+        let key = b"supersecretkeyyoushouldnotcommit".to_vec();
+        let mut ctx = Branca::new(&key).unwrap();
+        ctx.timestamp = 0; // Make sure current gets used.
+
+        let token = ctx.encode("Test").unwrap();
+        let mut decoded = b62_decode(BASE62, &token).unwrap();
+
+        // 651323084: Some day in 1990
+        BigEndian::write_u32(&mut decoded[1..5], 651323084);
+
+        assert!(
+            decode(&b62_encode(BASE62, &decoded), &key, 1000).unwrap_err()
+                == BrancaError::DecryptFailed
+        );
     }
 }
