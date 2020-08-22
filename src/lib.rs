@@ -459,6 +459,73 @@ mod unit_tests {
         b: bool,
     }
 
+    // Test vectors from: https://github.com/tuupola/branca-js/blob/master/test.js
+    #[test]
+    pub fn test_decode_1() {
+        let ciphertext =
+            "870S4BYjk7NvyViEjUNsTEmGXbARAX9PamXZg0b3JyeIdGyZkFJhNsOQW6m0K9KnXt3ZUBqDB6hF4";
+        let keygen = b"supersecretkeyyoushouldnotcommit".to_vec();
+        let ttl = 0;
+
+        assert_eq!(decode(ciphertext, &keygen, ttl).unwrap(), "Hello world!");
+    }
+
+    #[test]
+    pub fn test_decode_2() {
+        let ciphertext =
+            "89i7YCwtsSiYfXvOKlgkCyElnGCOEYG7zLCjUp4MuDIZGbkKJgt79Sts9RdW2Yo4imonXsILmqtNb";
+        let keygen = b"supersecretkeyyoushouldnotcommit".to_vec();
+        let ttl = 0;
+
+        assert_eq!(decode(ciphertext, &keygen, ttl).unwrap(), "Hello world!");
+    }
+
+    #[test]
+    pub fn test_decode_3() {
+        let ciphertext =
+            "875GH234UdXU6PkYq8g7tIM80XapDQOH72bU48YJ7SK1iHiLkrqT8Mly7P59TebOxCyQeqpMJ0a7a";
+        let keygen = b"supersecretkeyyoushouldnotcommit".to_vec();
+        let ttl = 0;
+
+        assert_eq!(decode(ciphertext, &keygen, ttl).unwrap(), "Hello world!");
+    }
+
+    #[test]
+    pub fn test_decode_4() {
+        let ciphertext = "1jIBheHWEwYIP59Wpm4QkjkIKuhc12NcYdp9Y60B6av7sZc3vJ5wBwmKJyQzGfJCrvuBgGnf";
+        let keygen = b"supersecretkeyyoushouldnotcommit".to_vec();
+        let ttl = 0;
+
+        assert_eq!(
+            decode(ciphertext, &keygen, ttl).unwrap(),
+            "\x00\x00\x00\x00\x00\x00\x00\x00"
+        );
+    }
+
+    #[test]
+    pub fn test_decode_5() {
+        let ciphertext = "1jrx6DUq9HmXvYdmhWMhXzx3klRzhlAjsc3tUFxDPCvZZLm16GYOzsBG4KwF1djjW1yTeZ2B";
+        let keygen = b"supersecretkeyyoushouldnotcommit".to_vec();
+        let ttl = 0;
+
+        assert_eq!(
+            decode(ciphertext, &keygen, ttl).unwrap(),
+            "\x00\x00\x00\x00\x00\x00\x00\x00"
+        );
+    }
+
+    #[test]
+    pub fn test_decode_6() {
+        let ciphertext = "1jJDJOEfuc4uBJh5ivaadjo6UaBZJDZ1NsWixVCz2mXw3824JRDQZIgflRqCNKz6yC7a0JKC";
+        let keygen = b"supersecretkeyyoushouldnotcommit".to_vec();
+        let ttl = 0;
+
+        assert_eq!(
+            decode(ciphertext, &keygen, ttl).unwrap(),
+            "\x00\x00\x00\x00\x00\x00\x00\x00"
+        );
+    }
+
     #[test]
     pub fn test_encode_builder() {
         let key = b"supersecretkeyyoushouldnotcommit".to_vec();
