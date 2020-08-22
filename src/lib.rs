@@ -203,7 +203,7 @@ impl Branca {
         let timestamp = SystemTime::now()
             .duration_since(SystemTime::UNIX_EPOCH)
             .expect("Failed to obtain timestamp from system clock.")
-            .as_nanos() as u32;
+            .as_secs() as u32;
 
         Ok(Branca {
             key: key.to_vec(),
