@@ -280,9 +280,8 @@ impl Branca {
                 .expect("Failed to obtain timestamp from system clock.");
             timestamp = ts.as_secs() as u32;
         }
-        let crypted = encode(message, &self.key, timestamp);
-
-        Ok(crypted.unwrap())
+        
+        encode(message, &self.key, timestamp)
     }
     /// Decodes a Branca token with the provided key in the struct.
     ///
