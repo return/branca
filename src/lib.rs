@@ -735,11 +735,10 @@ mod unit_tests {
     #[test]
     pub fn test_empty_payload_encode_decode() {
         let key = b"supersecretkeyyoushouldnotcommit".to_vec();
-        let mut ctx = Branca::new(&key).unwrap();
-        ctx.timestamp = 0; // Make sure current gets used.
-
-        let token = ctx.encode("").unwrap();
-        let decoded = ctx.decode(&token, 1000).unwrap();
+        let ctx = Branca::new(&key).unwrap();
+        // Empty token cross-checked with pybranca
+        let decoded = ctx.decode("4tGtt5wP5DCXzPhNbovMwEg9saksXSdmhvFbdrZrQjXEWf09BtuAK1wG5lpG0", 1000).unwrap();
+        
         assert_eq!("", decoded);
     }
 }
