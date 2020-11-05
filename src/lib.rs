@@ -44,7 +44,7 @@ fn main() {
     let ciphertext = token.encode("Hello World!").unwrap();
 
     let payload = token.decode(ciphertext.as_str(), 0).unwrap();
-    println!("{}", payload); // "Hello World!"
+    println!("{}", String::from_utf8(payload).unwrap()); // "Hello World!"
 }
 ```
 
@@ -96,7 +96,7 @@ let ttl = 3600;
 // The token will expire at timestamp + ttl
 let payload = decode(token.as_str(), &key, 0).unwrap();
 
-println!("{}", payload);
+println!("{}", String::from_utf8(payload).unwrap());
 // payload = "Hello World!"
 
 ```
@@ -303,7 +303,7 @@ impl Branca {
     ///     // Branca token is now in 'crypted' as a String.
     ///    
     ///     let decrypted = token.decode(crypted.as_str(), 3600);
-    ///     let mut payload: String  = Default::default();
+    ///     let mut payload: Vec<u8> = Vec::new();
     ///
     ///     if decrypted.is_err() {
     ///       // Something went wrong here...
@@ -313,7 +313,7 @@ impl Branca {
     ///     }
     /// }
     /// ```
-    pub fn decode(&self, ciphertext: &str, ttl: u32) -> Result<String, BrancaError> {
+    pub fn decode(&self, ciphertext: &str, ttl: u32) -> Result<Vec<u8>, BrancaError> {
         decode(ciphertext, &self.key, ttl)
     }
 }
@@ -386,7 +386,7 @@ pub fn encode(data: &str, key: &[u8], timestamp: u32) -> Result<String, BrancaEr
 /// * If the TTL is non-zero and the timestamp of the token is in the past. It is considered to be expired; returning a `BrancaError::ExpiredToken` Result.
 ///
 /// * If the input is not in Base62 format, it returns a `BrancaError::InvalidBase62Token` Result.
-pub fn decode(data: &str, key: &[u8], ttl: u32) -> Result<String, BrancaError> {
+pub fn decode(data: &str, key: &[u8], ttl: u32) -> Result<Vec<u8>, BrancaError> {
     let sk: SecretKey = match SecretKey::from_slice(key) {
         Ok(key) => key,
         Err(UnknownCryptoError) => return Err(BrancaError::BadKeyLength),
@@ -441,7 +441,7 @@ pub fn decode(data: &str, key: &[u8], ttl: u32) -> Result<String, BrancaError> {
     }
 
     // Return the plaintext.
-    Ok(String::from_utf8_lossy(&buf_crypt).into())
+    Ok(buf_crypt)
 }
 
 #[cfg(test)]
@@ -463,7 +463,7 @@ mod unit_tests {
         let key = b"supersecretkeyyoushouldnotcommit";
         let ttl = 0;
 
-        assert_eq!(decode(ciphertext, key, ttl).unwrap(), "Hello world!");
+        assert_eq!(decode(ciphertext, key, ttl).unwrap(), b"Hello world!");
     }
 
     #[test]
@@ -473,7 +473,7 @@ mod unit_tests {
         let key = b"supersecretkeyyoushouldnotcommit";
         let ttl = 0;
 
-        assert_eq!(decode(ciphertext, key, ttl).unwrap(), "Hello world!");
+        assert_eq!(decode(ciphertext, key, ttl).unwrap(), b"Hello world!");
     }
 
     #[test]
@@ -483,7 +483,7 @@ mod unit_tests {
         let key = b"supersecretkeyyoushouldnotcommit";
         let ttl = 0;
 
-        assert_eq!(decode(ciphertext, key, ttl).unwrap(), "Hello world!");
+        assert_eq!(decode(ciphertext, key, ttl).unwrap(), b"Hello world!");
     }
 
     #[test]
@@ -494,7 +494,7 @@ mod unit_tests {
 
         assert_eq!(
             decode(ciphertext, key, ttl).unwrap(),
-            "\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00"
         );
     }
 
@@ -506,7 +506,7 @@ mod unit_tests {
 
         assert_eq!(
             decode(ciphertext, key, ttl).unwrap(),
-            "\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00"
         );
     }
 
@@ -518,7 +518,7 @@ mod unit_tests {
 
         assert_eq!(
             decode(ciphertext, key, ttl).unwrap(),
-            "\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00"
         );
     }
 
@@ -537,7 +537,7 @@ mod unit_tests {
         let key = b"supersecretkeyyoushouldnotcommit";
         let ttl = 0;
 
-        assert_eq!(decode(ciphertext, key, ttl).unwrap(), "Hello world!");
+        assert_eq!(decode(ciphertext, key, ttl).unwrap(), b"Hello world!");
     }
 
     #[test]
@@ -553,7 +553,7 @@ mod unit_tests {
                 0
             )
             .unwrap(),
-            "Hello world!"
+            b"Hello world!"
         );
     }
 
@@ -570,7 +570,7 @@ mod unit_tests {
                 0
             )
             .unwrap(),
-            "Hello world!"
+            b"Hello world!"
         );
     }
 
@@ -591,7 +591,7 @@ mod unit_tests {
             0,
         )
         .unwrap();
-        let serialized_json: JSONTest = serde_json::from_str(json.as_str()).unwrap();
+        let serialized_json: JSONTest = serde_json::from_str(&String::from_utf8_lossy(&json)).unwrap();
 
         assert_eq!(serialized_json.a, "some string");
         assert_eq!(serialized_json.b, false);
@@ -611,7 +611,7 @@ mod unit_tests {
             0,
         )
         .unwrap();
-        let serialized_json: JSONTest = serde_json::from_str(json.as_str()).unwrap();
+        let serialized_json: JSONTest = serde_json::from_str(&String::from_utf8_lossy(&json)).unwrap();
 
         assert_eq!(serialized_json.a, "some string");
         assert_eq!(serialized_json.b, false);
@@ -624,7 +624,7 @@ mod unit_tests {
         let ciphertext = token.encode("Test").unwrap();
         let payload = token.decode(ciphertext.as_str(), 0).unwrap();
 
-        assert_eq!(payload, "Test");
+        assert_eq!(payload, b"Test");
     }
 
     #[test]
@@ -740,6 +740,6 @@ mod unit_tests {
 
         // Empty token cross-checked with pybranca
         let decoded = ctx.decode("4tGtt5wP5DCXzPhNbovMwEg9saksXSdmhvFbdrZrQjXEWf09BtuAK1wG5lpG0", 0).unwrap();
-        assert_eq!("", decoded);
+        assert_eq!(b"", &decoded[..]);
     }
 }
