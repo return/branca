@@ -392,7 +392,7 @@ pub fn decode(data: &str, key: &[u8], ttl: u32) -> Result<String, BrancaError> {
         Err(UnknownCryptoError) => return Err(BrancaError::BadKeyLength),
     };
 
-    if data.len() < 62 {
+    if data.len() < 61 {
         return Err(BrancaError::InvalidBase62Token);
     }
 
@@ -730,5 +730,16 @@ mod unit_tests {
         // to_string() should not panic.
         // See: https://github.com/return/branca/issues/14
         let _tostr = BrancaError::InvalidTokenVersion.to_string();
+    }
+
+    #[test]
+    pub fn test_empty_payload_encode_decode() {
+        let key = b"supersecretkeyyoushouldnotcommit".to_vec();
+        let mut ctx = Branca::new(&key).unwrap();
+        ctx.timestamp = 0; // Make sure current gets used.
+
+        let token = ctx.encode("").unwrap();
+        let decoded = ctx.decode(&token, 1000).unwrap();
+        assert_eq!("", decoded);
     }
 }
