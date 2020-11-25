@@ -22,21 +22,21 @@ pub enum Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        write!(fmt, "{}", self.to_string())
+        match *self {
+            Error::InvalidBase62Token => write!(fmt, "Base62 token is invalid."),
+            Error::InvalidTokenVersion => write!(fmt, "Token version is invalid."),
+            Error::BadNonceLength => write!(fmt, "Bad nonce length."),
+            Error::BadKeyLength => write!(fmt, "Bad key length."),
+            Error::ExpiredToken => write!(fmt, "This token has expired."),
+            Error::DecryptFailed => write!(fmt, "Decryption failed."),
+            Error::EncryptFailed => write!(fmt, "Encryption failed."),
+        }
     }
 }
 
 impl StdErr for Error {
     fn description(&self) -> &str {
-        match *self {
-            Error::InvalidBase62Token => "Base62 token is invalid.",
-            Error::InvalidTokenVersion => "Token version is invalid.",
-            Error::BadNonceLength => "Bad nonce length.",
-            Error::BadKeyLength => "Bad key length.",
-            Error::ExpiredToken => "This token has expired.",
-            Error::DecryptFailed => "Decryption failed.",
-            Error::EncryptFailed => "Encryption failed.",
-        }
+        "branca error, see to_string() for details"
     }
 }
 
