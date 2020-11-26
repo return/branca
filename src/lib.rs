@@ -280,7 +280,7 @@ impl Branca {
                 .expect("Failed to obtain timestamp from system clock.");
             timestamp = ts.as_secs() as u32;
         }
-        
+
         encode(message, &self.key, timestamp)
     }
     /// Decodes a Branca token with the provided key in the struct.
@@ -544,12 +544,7 @@ mod unit_tests {
     pub fn test_encode_and_decode() {
         let message = "Hello world!";
         let timestamp = 123206400;
-        let branca_token = encode(
-            message,
-            b"supersecretkeyyoushouldnotcommit",
-            timestamp,
-        )
-        .unwrap();
+        let branca_token = encode(message, b"supersecretkeyyoushouldnotcommit", timestamp).unwrap();
 
         assert_eq!(
             decode(
@@ -566,12 +561,7 @@ mod unit_tests {
     pub fn test_encode_and_decode_random_nonce() {
         let message = "Hello world!";
         let timestamp = 123206400;
-        let branca_token = encode(
-            message,
-            b"supersecretkeyyoushouldnotcommit",
-            timestamp,
-        )
-        .unwrap();
+        let branca_token = encode(message, b"supersecretkeyyoushouldnotcommit", timestamp).unwrap();
 
         assert_eq!(
             decode(
@@ -614,12 +604,7 @@ mod unit_tests {
                  "b":false
           }"#;
         let timestamp = 123206400;
-        let branca_token = encode(
-            message,
-            b"supersecretkeyyoushouldnotcommit",
-            timestamp,
-        )
-        .unwrap();
+        let branca_token = encode(message, b"supersecretkeyyoushouldnotcommit", timestamp).unwrap();
         let json = decode(
             branca_token.as_str(),
             b"supersecretkeyyoushouldnotcommit",
