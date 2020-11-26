@@ -460,40 +460,40 @@ mod unit_tests {
     pub fn test_decode_1() {
         let ciphertext =
             "870S4BYjk7NvyViEjUNsTEmGXbARAX9PamXZg0b3JyeIdGyZkFJhNsOQW6m0K9KnXt3ZUBqDB6hF4";
-        let keygen = b"supersecretkeyyoushouldnotcommit".to_vec();
+        let key = b"supersecretkeyyoushouldnotcommit";
         let ttl = 0;
 
-        assert_eq!(decode(ciphertext, &keygen, ttl).unwrap(), "Hello world!");
+        assert_eq!(decode(ciphertext, key, ttl).unwrap(), "Hello world!");
     }
 
     #[test]
     pub fn test_decode_2() {
         let ciphertext =
             "89i7YCwtsSiYfXvOKlgkCyElnGCOEYG7zLCjUp4MuDIZGbkKJgt79Sts9RdW2Yo4imonXsILmqtNb";
-        let keygen = b"supersecretkeyyoushouldnotcommit".to_vec();
+        let key = b"supersecretkeyyoushouldnotcommit";
         let ttl = 0;
 
-        assert_eq!(decode(ciphertext, &keygen, ttl).unwrap(), "Hello world!");
+        assert_eq!(decode(ciphertext, key, ttl).unwrap(), "Hello world!");
     }
 
     #[test]
     pub fn test_decode_3() {
         let ciphertext =
             "875GH234UdXU6PkYq8g7tIM80XapDQOH72bU48YJ7SK1iHiLkrqT8Mly7P59TebOxCyQeqpMJ0a7a";
-        let keygen = b"supersecretkeyyoushouldnotcommit".to_vec();
+        let key = b"supersecretkeyyoushouldnotcommit";
         let ttl = 0;
 
-        assert_eq!(decode(ciphertext, &keygen, ttl).unwrap(), "Hello world!");
+        assert_eq!(decode(ciphertext, key, ttl).unwrap(), "Hello world!");
     }
 
     #[test]
     pub fn test_decode_4() {
         let ciphertext = "1jIBheHWEwYIP59Wpm4QkjkIKuhc12NcYdp9Y60B6av7sZc3vJ5wBwmKJyQzGfJCrvuBgGnf";
-        let keygen = b"supersecretkeyyoushouldnotcommit".to_vec();
+        let key = b"supersecretkeyyoushouldnotcommit";
         let ttl = 0;
 
         assert_eq!(
-            decode(ciphertext, &keygen, ttl).unwrap(),
+            decode(ciphertext, key, ttl).unwrap(),
             "\x00\x00\x00\x00\x00\x00\x00\x00"
         );
     }
@@ -501,11 +501,11 @@ mod unit_tests {
     #[test]
     pub fn test_decode_5() {
         let ciphertext = "1jrx6DUq9HmXvYdmhWMhXzx3klRzhlAjsc3tUFxDPCvZZLm16GYOzsBG4KwF1djjW1yTeZ2B";
-        let keygen = b"supersecretkeyyoushouldnotcommit".to_vec();
+        let key = b"supersecretkeyyoushouldnotcommit";
         let ttl = 0;
 
         assert_eq!(
-            decode(ciphertext, &keygen, ttl).unwrap(),
+            decode(ciphertext, key, ttl).unwrap(),
             "\x00\x00\x00\x00\x00\x00\x00\x00"
         );
     }
@@ -513,19 +513,19 @@ mod unit_tests {
     #[test]
     pub fn test_decode_6() {
         let ciphertext = "1jJDJOEfuc4uBJh5ivaadjo6UaBZJDZ1NsWixVCz2mXw3824JRDQZIgflRqCNKz6yC7a0JKC";
-        let keygen = b"supersecretkeyyoushouldnotcommit".to_vec();
+        let key = b"supersecretkeyyoushouldnotcommit";
         let ttl = 0;
 
         assert_eq!(
-            decode(ciphertext, &keygen, ttl).unwrap(),
+            decode(ciphertext, key, ttl).unwrap(),
             "\x00\x00\x00\x00\x00\x00\x00\x00"
         );
     }
 
     #[test]
     pub fn test_encode_builder() {
-        let key = b"supersecretkeyyoushouldnotcommit".to_vec();
-        let mut token = Branca::new(&key).unwrap();
+        let key = b"supersecretkeyyoushouldnotcommit";
+        let mut token = Branca::new(key).unwrap();
         let ciphertext = token.set_timestamp(123206400).encode("Test");
         assert_eq!(ciphertext.is_ok(), true);
     }
@@ -534,10 +534,10 @@ mod unit_tests {
     pub fn test_decode() {
         let ciphertext =
             "875GH233T7IYrxtgXxlQBYiFobZMQdHAT51vChKsAIYCFxZtL1evV54vYqLyZtQ0ekPHt8kJHQp0a";
-        let keygen = b"supersecretkeyyoushouldnotcommit".to_vec();
+        let key = b"supersecretkeyyoushouldnotcommit";
         let ttl = 0;
 
-        assert_eq!(decode(ciphertext, &keygen, ttl).unwrap(), "Hello world!");
+        assert_eq!(decode(ciphertext, key, ttl).unwrap(), "Hello world!");
     }
 
     #[test]
@@ -546,7 +546,7 @@ mod unit_tests {
         let timestamp = 123206400;
         let branca_token = encode(
             message,
-            &b"supersecretkeyyoushouldnotcommit".to_vec(),
+            b"supersecretkeyyoushouldnotcommit",
             timestamp,
         )
         .unwrap();
@@ -554,7 +554,7 @@ mod unit_tests {
         assert_eq!(
             decode(
                 branca_token.as_str(),
-                &b"supersecretkeyyoushouldnotcommit".to_vec(),
+                b"supersecretkeyyoushouldnotcommit",
                 0
             )
             .unwrap(),
@@ -568,7 +568,7 @@ mod unit_tests {
         let timestamp = 123206400;
         let branca_token = encode(
             message,
-            &b"supersecretkeyyoushouldnotcommit".to_vec(),
+            b"supersecretkeyyoushouldnotcommit",
             timestamp,
         )
         .unwrap();
@@ -576,7 +576,7 @@ mod unit_tests {
         assert_eq!(
             decode(
                 branca_token.as_str(),
-                &b"supersecretkeyyoushouldnotcommit".to_vec(),
+                b"supersecretkeyyoushouldnotcommit",
                 0
             )
             .unwrap(),
@@ -591,13 +591,13 @@ mod unit_tests {
         let timestamp = 123206400;
         let branca_token = encode(
             message.as_str(),
-            &b"supersecretkeyyoushouldnotcommit".to_vec(),
+            b"supersecretkeyyoushouldnotcommit",
             timestamp,
         )
         .unwrap();
         let json = decode(
             branca_token.as_str(),
-            &b"supersecretkeyyoushouldnotcommit".to_vec(),
+            b"supersecretkeyyoushouldnotcommit",
             0,
         )
         .unwrap();
@@ -616,13 +616,13 @@ mod unit_tests {
         let timestamp = 123206400;
         let branca_token = encode(
             message,
-            &b"supersecretkeyyoushouldnotcommit".to_vec(),
+            b"supersecretkeyyoushouldnotcommit",
             timestamp,
         )
         .unwrap();
         let json = decode(
             branca_token.as_str(),
-            &b"supersecretkeyyoushouldnotcommit".to_vec(),
+            b"supersecretkeyyoushouldnotcommit",
             0,
         )
         .unwrap();
@@ -634,8 +634,8 @@ mod unit_tests {
 
     #[test]
     pub fn test_encode_and_decode_builder() {
-        let key = b"supersecretkeyyoushouldnotcommit".to_vec();
-        let token = Branca::new(&key).unwrap();
+        let key = b"supersecretkeyyoushouldnotcommit";
+        let token = Branca::new(key).unwrap();
         let ciphertext = token.encode("Test").unwrap();
         let payload = token.decode(ciphertext.as_str(), 0).unwrap();
 
@@ -644,8 +644,8 @@ mod unit_tests {
 
     #[test]
     pub fn test_encode_and_decode_builder_with_exp_ttl() {
-        let key = b"supersecretkeyyoushouldnotcommit".to_vec();
-        let mut token = Branca::new(&key).unwrap();
+        let key = b"supersecretkeyyoushouldnotcommit";
+        let mut token = Branca::new(key).unwrap();
         let ciphertext = token.set_timestamp(123206400).encode("Test").unwrap();
         let payload = token.decode(ciphertext.as_str(), 0);
         match payload {
@@ -658,9 +658,9 @@ mod unit_tests {
     pub fn test_expired_ttl() {
         let ciphertext =
             "875GH233T7IYrxtgXxlQBYiFobZMQdHAT51vChKsAIYCFxZtL1evV54vYqLyZtQ0ekPHt8kJHQp0a";
-        let keygen = b"supersecretkeyyoushouldnotcommit".to_vec();
+        let key = b"supersecretkeyyoushouldnotcommit";
         let ttl = 3600;
-        let message = decode(ciphertext, &keygen, ttl);
+        let message = decode(ciphertext, key, ttl);
 
         match message {
             Err(e) => assert_eq!(e, BrancaError::ExpiredToken),
@@ -672,9 +672,9 @@ mod unit_tests {
     pub fn test_decryption_fail() {
         let ciphertext =
             "875GH233T7IYrxtgXxlQBYiFobZMQdHAT51vChKsAIYCFxZtL1evV54vYqLyZtQ0ekPHt8kJHQp0a";
-        let keygen = b"supersecretkeyyoushouldnotcommi.".to_vec();
+        let key = b"supersecretkeyyoushouldnotcommi.";
         let ttl = 0;
-        let branca_token = decode(ciphertext, &keygen, ttl);
+        let branca_token = decode(ciphertext, key, ttl);
 
         match branca_token {
             Err(e) => assert_eq!(e, BrancaError::DecryptFailed),
@@ -685,9 +685,9 @@ mod unit_tests {
     #[test]
     pub fn test_base62_fail() {
         let ciphertext = "875GH233T7IYrxtgXxlQBYiFo";
-        let keygen = b"supersecretkeyyoushouldnotcommit".to_vec();
+        let key = b"supersecretkeyyoushouldnotcommit";
         let ttl = 0;
-        let branca_token = decode(ciphertext, &keygen, ttl);
+        let branca_token = decode(ciphertext, key, ttl);
 
         match branca_token {
             Err(e) => assert_eq!(e, BrancaError::InvalidBase62Token),
@@ -697,10 +697,10 @@ mod unit_tests {
 
     #[test]
     pub fn test_bad_key() {
-        let keygen = b"supersecretkey".to_vec();
+        let key = b"supersecretkey";
         let message = "Hello world!";
         let timestamp = 123206400;
-        let branca_token = encode(message, &keygen, timestamp);
+        let branca_token = encode(message, key, timestamp);
 
         match branca_token {
             Err(e) => assert_eq!(e, BrancaError::BadKeyLength),
@@ -712,9 +712,9 @@ mod unit_tests {
     pub fn test_version_mismatch() {
         let ciphertext =
             "005GH233T7IYrxtgXxlQBYiFobZMQdHAT51vChKsAIYCFxZtL1evV54vYqLyZtQ0ekPHt8kJHQp0a";
-        let keygen = b"supersecretkeyyoushouldnotcommit".to_vec();
+        let key = b"supersecretkeyyoushouldnotcommit";
         let ttl = 0;
-        let branca_token = decode(ciphertext, &keygen, ttl);
+        let branca_token = decode(ciphertext, key, ttl);
 
         match branca_token {
             Err(e) => assert_eq!(e, BrancaError::InvalidTokenVersion),
@@ -724,8 +724,8 @@ mod unit_tests {
 
     #[test]
     pub fn test_modified_timestamp_returns_bad_tag() {
-        let key = b"supersecretkeyyoushouldnotcommit".to_vec();
-        let mut ctx = Branca::new(&key).unwrap();
+        let key = b"supersecretkeyyoushouldnotcommit";
+        let mut ctx = Branca::new(key).unwrap();
         ctx.timestamp = 0; // Make sure current gets used.
 
         let token = ctx.encode("Test").unwrap();
@@ -735,7 +735,7 @@ mod unit_tests {
         BigEndian::write_u32(&mut decoded[1..5], 651323084);
 
         assert!(
-            decode(&b62_encode(BASE62, &decoded), &key, 1000).unwrap_err()
+            decode(&b62_encode(BASE62, &decoded), key, 1000).unwrap_err()
                 == BrancaError::DecryptFailed
         );
     }
