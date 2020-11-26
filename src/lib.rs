@@ -362,11 +362,8 @@ pub fn encode(data: &str, key: &[u8], timestamp: u32) -> Result<String, BrancaEr
         Err(UnknownCryptoError) => return Err(BrancaError::EncryptFailed),
     };
 
-    // Our payload is now encoded into base62.
-    let b62_enc = b62_encode(BASE62, buf_crypt.as_ref());
-
-    // Return the branca token as a string.
-    Ok(b62_enc)
+    // Return payload encoded as base62.
+    Ok(b62_encode(BASE62, buf_crypt.as_ref()))
 }
 
 /// Decodes a Branca token and returns the plaintext as a String.
