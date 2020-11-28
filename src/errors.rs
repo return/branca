@@ -22,15 +22,7 @@ pub enum Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            Error::InvalidBase62Token => write!(fmt, "Base62 token is invalid."),
-            Error::InvalidTokenVersion => write!(fmt, "Token version is invalid."),
-            Error::BadNonceLength => write!(fmt, "Bad nonce length."),
-            Error::BadKeyLength => write!(fmt, "Bad key length."),
-            Error::ExpiredToken => write!(fmt, "This token has expired."),
-            Error::DecryptFailed => write!(fmt, "Decryption failed."),
-            Error::EncryptFailed => write!(fmt, "Encryption failed."),
-        }
+        write!(fmt, "{:?}", self)
     }
 }
 
