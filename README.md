@@ -46,12 +46,12 @@ use branca::{Branca, encode, decode};
 The simplest way to use this crate is to use `Branca::new()` in this example below:
 
 ```rust
-    let key = b"supersecretkeyyoushouldnotcommit".to_vec();
-    let token = Branca::new(&key).unwrap();
-    let ciphertext = token.encode("Hello World!").unwrap();
+    let key = b"supersecretkeyyoushouldnotcommit";
+    let token = Branca::new(key).unwrap();
+    let ciphertext = token.encode(b"Hello World!").unwrap();
 
     let payload = token.decode(ciphertext.as_str(), 0).unwrap();
-    println("{}", payload); // "Hello World!"
+    println!("{}", payload); // "Hello World!"
 ```
 
 See more examples of setting fields in the [Branca struct](https://docs.rs/branca/) and in the [Documentation section.](https://docs.rs/branca/0.8.0/branca/struct.Branca.html)
@@ -59,11 +59,11 @@ See more examples of setting fields in the [Branca struct](https://docs.rs/branc
 ## Direct usage without Branca builder.
 ### Encoding:
 ```rust
-let key = b"supersecretkeyyoushouldnotcommit".to_vec();
+let key = b"supersecretkeyyoushouldnotcommit";
 
-let message = "Hello world!";
+let message = b"Hello world!";
 let timestamp = 123206400;
-let branca_token = encode(message,&key,timestamp).unwrap();
+let branca_token = encode(message, key, timestamp).unwrap();
 
 // branca_token = 875GH233T7.......
 ```
@@ -71,9 +71,9 @@ let branca_token = encode(message,&key,timestamp).unwrap();
 ### Decoding:
 ```rust
 let ciphertext = branca_token.as_str();
-let key = b"supersecretkeyyoushouldnotcommit".to_vec();
+let key = b"supersecretkeyyoushouldnotcommit";
 let ttl = 0; // The ttl can be used to determine if the supplied token has expired or not.
-let decoded = decode(ciphertext, &key, ttl);
+let decoded = decode(ciphertext, key, ttl);
 
 if decoded.is_err() {
     // Error
@@ -119,11 +119,11 @@ fn main(){
         "scope":["read", "write", "delete"],
     }).to_string();
 
-    let key = b"supersecretkeyyoushouldnotcommit".to_vec();
-    let token = Branca::new(&key).unwrap();
+    let key = b"supersecretkeyyoushouldnotcommit";
+    let token = Branca::new(key).unwrap();
     
     // Encode Message
-    let branca_token = token.encode(message.as_str()).unwrap();
+    let branca_token = token.encode(message.as_bytes()).unwrap();
     
     // Decode Message
     let payload = token.decode(branca_token.as_str(), 0).unwrap();
