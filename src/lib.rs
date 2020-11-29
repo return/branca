@@ -742,4 +742,15 @@ mod unit_tests {
         let decoded = ctx.decode("4tGtt5wP5DCXzPhNbovMwEg9saksXSdmhvFbdrZrQjXEWf09BtuAK1wG5lpG0", 0).unwrap();
         assert_eq!(b"", &decoded[..]);
     }
+
+    #[test]
+    pub fn test_non_utf8_encode_decode() {
+        // See: https://github.com/return/branca/issues/10
+        let key = b"supersecretkeyyoushouldnotcommit";
+        let ctx = Branca::new(key).unwrap();
+        assert_eq!(b"\x80", &ctx.decode(ctx.encode(b"\x80").unwrap().as_str(), 0).unwrap()[..]);
+
+        let decoded = ctx.decode("K9i9jp23WMENUOulBifHPEnfBp67LfQBE3wYBCPSCu2uTBEeFHwGJZfH8DOTa1", 0).unwrap();
+        assert_eq!(b"\x80", &decoded[..]);
+    }
 }
