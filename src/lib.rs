@@ -743,4 +743,11 @@ mod unit_tests {
                 == BrancaError::DecryptFailed
         );
     }
+
+    #[test]
+    pub fn test_no_panic_on_display() {
+        // to_string() should not panic.
+        // See: https://github.com/return/branca/issues/14
+        let _tostr = BrancaError::InvalidTokenVersion.to_string();
+    }
 }
