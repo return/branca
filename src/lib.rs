@@ -139,6 +139,7 @@ pub struct Branca {
     /// The Branca Key which is exactly 32 bytes in length.
     key: Vec<u8>,
     /// The Branca Nonce which is exactly 24 bytes in length.
+    /// A new nonce is generated each time `encode()` is called.
     nonce: Vec<u8>,
     /// The Time-to-live field (TTL) to set the number of seconds
     /// for the token to be valid for after its creation set in the `timestamp` field.
@@ -146,7 +147,8 @@ pub struct Branca {
     /// If the TTL field is set to 0, then the expiration check is omitted.
     /// By default it is set to 0 when using `Branca::new(&key)` method.
     ttl: u32,
-    /// The creation time of the Branca token.
+    /// The creation time of the Branca token. If not specified manually, it is created
+    /// given the current system time, each time `encode()` is called.
     ///
     /// This is used together with the `ttl` to check if the token has expired or not.
     timestamp: u32,
@@ -197,17 +199,11 @@ impl Branca {
             return Err(BrancaError::BadKeyLength);
         }
 
-        // Generate a timestamp instead of a zero supplied one.
-        let timestamp = SystemTime::now()
-            .duration_since(SystemTime::UNIX_EPOCH)
-            .expect("Failed to obtain timestamp from system clock.")
-            .as_secs() as u32;
-
         Ok(Branca {
             key: key.to_vec(),
             nonce: Vec::new(),
             ttl: 0,
-            timestamp,
+            timestamp: 0,
         })
     }
 
@@ -229,6 +225,9 @@ impl Branca {
     /// The timestamp determines the validity of the token upon creation.
     /// When used with the TTL, the expiration time is determined simply by:
     /// `exp_timestamp = (timestamp + ttl)`
+    ///
+    /// If this hasn't been specified manually, or `encode()` hasn't been called yet,
+    /// this returns `0`.
     ///
     /// If the token has been set with a TTL, the decoder checks the validity of the token
     /// and any timestamp set before the future_time is valid, otherwise it is expired.
@@ -256,6 +255,9 @@ impl Branca {
     ///
     /// This panics if unable to securely generate random bytes or if unable to obtain current system time.
     ///
+    /// If the `timestamp` hasn't been set, the current system time is used. If `timestamp` has been set and is not `0`,
+    /// that value is used for all tokens created with this function (until changed).
+    ///
     /// The contents of the message can be of any arbitrary sequence of bytes, ie. text, JSON, Protobuf, JWT or a MessagePack, etc.
     ///
     /// `message` - The data to be encoded as a Branca token.
@@ -274,6 +276,7 @@ impl Branca {
     /// }
     /// ```
     pub fn encode(&mut self, message: &[u8]) -> Result<String, BrancaError> {
+        // A timestamp has not been manually set, so we create one automatically.
         let mut timestamp = self.timestamp;
         if timestamp == 0 {
             // Generate a timestamp instead of a zero supplied one.
@@ -290,6 +293,7 @@ impl Branca {
 
         encode_with_nonce(message, &self.key, &Nonce::from(nonce), timestamp)
     }
+
     /// Decodes a Branca token with the provided key in the struct.
     ///
     /// `ciphertext` - The input which is to be decrypted with the key found in the Branca struct.
