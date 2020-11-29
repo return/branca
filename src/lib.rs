@@ -178,6 +178,8 @@ impl core::fmt::Debug for Branca {
 impl Branca {
     /// Create a new Branca struct with a specified key. The length of the key must be exactly 32 bytes.
     ///
+    /// This panics if the current system time cannot be obtained.
+    ///
     /// `key` - The key to be used for encrypting and decrypting the input.
     ///
     ///```rust
@@ -251,7 +253,8 @@ impl Branca {
         self
     }
     /// Encodes the message with the created Branca struct.
-    /// This function panics if unable to securely generate random bytes.
+    ///
+    /// This panics if unable to securely generate random bytes or if unable to obtain current system time.
     ///
     /// The contents of the message can be of any arbitrary sequence of bytes, ie. text, JSON, Protobuf, JWT or a MessagePack, etc.
     ///
@@ -403,6 +406,8 @@ fn encode_with_nonce(
 /// * If the TTL is non-zero and the timestamp of the token is in the past, it is considered to be expired; returning a `BrancaError::ExpiredToken` Result.
 ///
 /// * If the input is not in Base62 format, it returns a `BrancaError::InvalidBase62Token` Result.
+///
+/// * This panics if the current system time cannot be obtained or if `ttl + timestamp` overflow.
 pub fn decode(data: &str, key: &[u8], ttl: u32) -> Result<Vec<u8>, BrancaError> {
     let sk: SecretKey = match SecretKey::from_slice(key) {
         Ok(key) => key,
@@ -821,5 +826,14 @@ mod unit_tests {
         let raw_token_nonce_again = &raw_token_again[5..29];
         assert_eq!(raw_token_nonce_again, &ctx.nonce[..]);
         assert_ne!(raw_token_nonce_again, raw_token_nonce);
+    }
+
+    #[test]
+    #[should_panic(expected = "TTL too high.")]
+    pub fn test_panic_on_overflowing_timestamp() {
+        let key = b"supersecretkeyyoushouldnotcommit";
+        let token = encode(b"", key, 4294967295).unwrap();
+
+        assert!(decode(&token, key, 1).is_err());
     }
 }
