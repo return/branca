@@ -176,7 +176,8 @@ impl core::fmt::Debug for Branca {
 }
 
 impl Branca {
-    /// Create a new Branca struct with a specified key. The length of the key must be exactly 32 bytes.
+    /// Create a new Branca struct with a specified key. The length of the key must be exactly 32 bytes. 
+    /// This function panics if unable to securely generate random bytes.
     ///
     /// `key` - The key to be used for encrypting and decrypting the input.
     ///
@@ -317,6 +318,7 @@ impl Branca {
         decode(ciphertext, &self.key, ttl)
     }
 }
+
 /// Encodes the message and returns a Branca Token as a String.
 ///
 /// The contents of the message can be of any arbitrary sequence of bytes, ie. text, JSON, Protobuf, JWT or a MessagePack, etc.
@@ -332,6 +334,8 @@ impl Branca {
 /// * The key must be 32 bytes in length, otherwise it returns a `BrancaError::BadKeyLength` Result.
 ///
 /// * The generated nonce is 24 bytes in length, otherwise it returns a `BrancaError::BadNonceLength` Result.
+/// 
+/// * This function panics if unable to securely generate random bytes.
 pub fn encode(data: &[u8], key: &[u8], timestamp: u32) -> Result<String, BrancaError> {
     let sk: SecretKey = match SecretKey::from_slice(key) {
         Ok(key) => key,
@@ -383,7 +387,7 @@ pub fn encode(data: &[u8], key: &[u8], timestamp: u32) -> Result<String, BrancaE
 ///
 /// * If the decryption fails, it returns a `BrancaError::DecryptFailed` Result.
 ///
-/// * If the TTL is non-zero and the timestamp of the token is in the past. It is considered to be expired; returning a `BrancaError::ExpiredToken` Result.
+/// * If the TTL is non-zero and the timestamp of the token is in the past, it is considered to be expired; returning a `BrancaError::ExpiredToken` Result.
 ///
 /// * If the input is not in Base62 format, it returns a `BrancaError::InvalidBase62Token` Result.
 pub fn decode(data: &str, key: &[u8], ttl: u32) -> Result<Vec<u8>, BrancaError> {
@@ -396,7 +400,10 @@ pub fn decode(data: &str, key: &[u8], ttl: u32) -> Result<Vec<u8>, BrancaError> 
         return Err(BrancaError::InvalidBase62Token);
     }
 
-    let decoded_data = b62_decode(BASE62, &data).expect("Base62 token is invalid.");
+    let decoded_data = match b62_decode(BASE62, data) {
+        Ok(decoded) => decoded,
+        Err(_) => return Err(BrancaError::InvalidBase62Token),
+    };
 
     // After we have decoded the data, the branca token is now represented
     // by the following layout below:
@@ -752,5 +759,17 @@ mod unit_tests {
 
         let decoded = ctx.decode("K9i9jp23WMENUOulBifHPEnfBp67LfQBE3wYBCPSCu2uTBEeFHwGJZfH8DOTa1", 0).unwrap();
         assert_eq!(b"\x80", &decoded[..]);
+    }
+
+    #[test]
+    pub fn test_correct_err_on_invalid_base62() {
+        let key = b"supersecretkeyyoushouldnotcommit";
+        let mut token = encode(b"Hello world!", key, 0).unwrap();
+        token.push('_');
+
+        assert!(
+            decode(&token, key, 0).unwrap_err()
+                == BrancaError::InvalidBase62Token
+        );
     }
 }
