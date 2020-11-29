@@ -36,7 +36,7 @@ impl StdErr for Error {
             Error::BadNonceLength => "Bad nonce length.",
             Error::BadKeyLength => "Bad key length.",
             Error::ExpiredToken => "This token has expired.",
-            Error::OverflowingOperation => "Attempting to add TTL to the lifetime overflowed.",
+            Error::OverflowingOperation => "Attempting to add TTL to the timestamp overflowed.",
             Error::DecryptFailed => "Decryption failed.",
             Error::EncryptFailed => "Encryption failed.",
         }
