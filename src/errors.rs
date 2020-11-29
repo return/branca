@@ -28,7 +28,15 @@ impl fmt::Display for Error {
 
 impl StdErr for Error {
     fn description(&self) -> &str {
-        "branca error, see to_string() for details"
+        match *self {
+            Error::InvalidBase62Token => "Base62 token is invalid.",
+            Error::InvalidTokenVersion => "Token version is invalid.",
+            Error::BadNonceLength => "Bad nonce length.",
+            Error::BadKeyLength => "Bad key length.",
+            Error::ExpiredToken => "This token has expired.",
+            Error::DecryptFailed => "Decryption failed.",
+            Error::EncryptFailed => "Encryption failed.",
+        }
     }
 }
 
