@@ -40,7 +40,7 @@ use branca::Branca;
 
 fn main() {
     let key = b"supersecretkeyyoushouldnotcommit".to_vec();
-    let token = Branca::new(&key).unwrap();
+    let mut token = Branca::new(&key).unwrap();
     let ciphertext = token.encode(b"Hello World!").unwrap();
 
     let payload = token.decode(ciphertext.as_str(), 0).unwrap();
@@ -176,8 +176,7 @@ impl core::fmt::Debug for Branca {
 }
 
 impl Branca {
-    /// Create a new Branca struct with a specified key. The length of the key must be exactly 32 bytes. 
-    /// This function panics if unable to securely generate random bytes.
+    /// Create a new Branca struct with a specified key. The length of the key must be exactly 32 bytes.
     ///
     /// `key` - The key to be used for encrypting and decrypting the input.
     ///
@@ -186,8 +185,8 @@ impl Branca {
     /// use branca::Branca;
     ///
     /// fn main() {
-    ///        let key = b"supersecretkeyyoushouldnotcommit".to_vec();
-    ///        let token = Branca::new(&key);
+    ///        let key = b"supersecretkeyyoushouldnotcommit";
+    ///        let token = Branca::new(key);
     /// }
     ///```
     pub fn new(key: &[u8]) -> Result<Branca, BrancaError> {
@@ -195,10 +194,6 @@ impl Branca {
         if key.len() != CHACHA_KEYSIZE {
             return Err(BrancaError::BadKeyLength);
         }
-
-        // Generate Nonce (24 bytes in length)
-        let mut nonce = vec![0; XCHACHA_NONCESIZE];
-        secure_rand_bytes(&mut nonce).unwrap();
 
         // Generate a timestamp instead of a zero supplied one.
         let timestamp = SystemTime::now()
@@ -208,7 +203,7 @@ impl Branca {
 
         Ok(Branca {
             key: key.to_vec(),
-            nonce,
+            nonce: Vec::new(),
             ttl: 0,
             timestamp,
         })
@@ -219,6 +214,8 @@ impl Branca {
         self.key
     }
     /// The Branca nonce used with the key for encrypting the message.
+    /// A new nonce is generated each time `encode()` is called. If `encode()`
+    /// hasn't been called yet, this returns an empty vector.
     pub fn nonce(self) -> Vec<u8> {
         self.nonce
     }
@@ -254,6 +251,7 @@ impl Branca {
         self
     }
     /// Encodes the message with the created Branca struct.
+    /// This function panics if unable to securely generate random bytes.
     ///
     /// The contents of the message can be of any arbitrary sequence of bytes, ie. text, JSON, Protobuf, JWT or a MessagePack, etc.
     ///
@@ -265,14 +263,14 @@ impl Branca {
     /// use branca::Branca;
     ///
     /// fn main() {
-    ///     let key = b"supersecretkeyyoushouldnotcommit".to_vec();
-    ///     let token = Branca::new(&key).unwrap();
+    ///     let key = b"supersecretkeyyoushouldnotcommit";
+    ///     let mut token = Branca::new(key).unwrap();
     ///
     ///     let ciphertext = token.encode(b"Hello World!").unwrap();
     ///     // Branca token is now in 'ciphertext' as a String.
     /// }
     /// ```
-    pub fn encode(&self, message: &[u8]) -> Result<String, BrancaError> {
+    pub fn encode(&mut self, message: &[u8]) -> Result<String, BrancaError> {
         let mut timestamp = self.timestamp;
         if timestamp == 0 {
             // Generate a timestamp instead of a zero supplied one.
@@ -282,7 +280,12 @@ impl Branca {
             timestamp = ts.as_secs() as u32;
         }
 
-        encode(message, &self.key, timestamp)
+        // Generate Nonce (24 bytes in length)
+        let mut nonce = [0; XCHACHA_NONCESIZE];
+        secure_rand_bytes(&mut nonce).unwrap();
+        self.nonce = nonce.to_vec();
+
+        encode_with_nonce(message, &self.key, &Nonce::from(nonce), timestamp)
     }
     /// Decodes a Branca token with the provided key in the struct.
     ///
@@ -299,7 +302,7 @@ impl Branca {
     /// use branca::Branca;
     ///
     /// fn main() {
-    ///     let token = Branca::new(&b"supersecretkeyyoushouldnotcommit".to_vec()).unwrap();
+    ///     let mut token = Branca::new(&b"supersecretkeyyoushouldnotcommit".to_vec()).unwrap();
     ///     let crypted = token.encode(b"Hello World!").unwrap();
     ///     // Branca token is now in 'crypted' as a String.
     ///    
@@ -334,16 +337,21 @@ impl Branca {
 /// * The key must be 32 bytes in length, otherwise it returns a `BrancaError::BadKeyLength` Result.
 ///
 /// * The generated nonce is 24 bytes in length, otherwise it returns a `BrancaError::BadNonceLength` Result.
-/// 
+///
 /// * This function panics if unable to securely generate random bytes.
 pub fn encode(data: &[u8], key: &[u8], timestamp: u32) -> Result<String, BrancaError> {
     // Use CSPRNG to generate a unique nonce.
     let n = Nonce::generate();
-    
+
     encode_with_nonce(data, key, &n, timestamp)
 }
 
-fn encode_with_nonce(data: &[u8], key: &[u8], nonce: &Nonce, timestamp: u32) -> Result<String, BrancaError> {
+fn encode_with_nonce(
+    data: &[u8],
+    key: &[u8],
+    nonce: &Nonce,
+    timestamp: u32,
+) -> Result<String, BrancaError> {
     let sk: SecretKey = match SecretKey::from_slice(key) {
         Ok(key) => key,
         Err(UnknownCryptoError) => return Err(BrancaError::BadKeyLength),
@@ -603,7 +611,8 @@ mod unit_tests {
             0,
         )
         .unwrap();
-        let serialized_json: JSONTest = serde_json::from_str(&String::from_utf8_lossy(&json)).unwrap();
+        let serialized_json: JSONTest =
+            serde_json::from_str(&String::from_utf8_lossy(&json)).unwrap();
 
         assert_eq!(serialized_json.a, "some string");
         assert_eq!(serialized_json.b, false);
@@ -616,14 +625,20 @@ mod unit_tests {
                  "b":false
           }"#;
         let timestamp = 123206400;
-        let branca_token = encode(message.as_bytes(), b"supersecretkeyyoushouldnotcommit", timestamp).unwrap();
+        let branca_token = encode(
+            message.as_bytes(),
+            b"supersecretkeyyoushouldnotcommit",
+            timestamp,
+        )
+        .unwrap();
         let json = decode(
             branca_token.as_str(),
             b"supersecretkeyyoushouldnotcommit",
             0,
         )
         .unwrap();
-        let serialized_json: JSONTest = serde_json::from_str(&String::from_utf8_lossy(&json)).unwrap();
+        let serialized_json: JSONTest =
+            serde_json::from_str(&String::from_utf8_lossy(&json)).unwrap();
 
         assert_eq!(serialized_json.a, "some string");
         assert_eq!(serialized_json.b, false);
@@ -632,7 +647,7 @@ mod unit_tests {
     #[test]
     pub fn test_encode_and_decode_builder() {
         let key = b"supersecretkeyyoushouldnotcommit";
-        let token = Branca::new(key).unwrap();
+        let mut token = Branca::new(key).unwrap();
         let ciphertext = token.encode(b"Test").unwrap();
         let payload = token.decode(ciphertext.as_str(), 0).unwrap();
 
@@ -747,11 +762,16 @@ mod unit_tests {
     #[test]
     pub fn test_empty_payload_encode_decode() {
         let key = b"supersecretkeyyoushouldnotcommit";
-        let ctx = Branca::new(key).unwrap();
+        let mut ctx = Branca::new(key).unwrap();
         assert!(ctx.encode(b"").is_ok());
 
         // Empty token cross-checked with pybranca
-        let decoded = ctx.decode("4tGtt5wP5DCXzPhNbovMwEg9saksXSdmhvFbdrZrQjXEWf09BtuAK1wG5lpG0", 0).unwrap();
+        let decoded = ctx
+            .decode(
+                "4tGtt5wP5DCXzPhNbovMwEg9saksXSdmhvFbdrZrQjXEWf09BtuAK1wG5lpG0",
+                0,
+            )
+            .unwrap();
         assert_eq!(b"", &decoded[..]);
     }
 
@@ -759,10 +779,16 @@ mod unit_tests {
     pub fn test_non_utf8_encode_decode() {
         // See: https://github.com/return/branca/issues/10
         let key = b"supersecretkeyyoushouldnotcommit";
-        let ctx = Branca::new(key).unwrap();
-        assert_eq!(b"\x80", &ctx.decode(ctx.encode(b"\x80").unwrap().as_str(), 0).unwrap()[..]);
+        let mut ctx = Branca::new(key).unwrap();
+        let own_token = ctx.encode(b"\x80").unwrap();
+        assert_eq!(b"\x80", &ctx.decode(own_token.as_str(), 0).unwrap()[..]);
 
-        let decoded = ctx.decode("K9i9jp23WMENUOulBifHPEnfBp67LfQBE3wYBCPSCu2uTBEeFHwGJZfH8DOTa1", 0).unwrap();
+        let decoded = ctx
+            .decode(
+                "K9i9jp23WMENUOulBifHPEnfBp67LfQBE3wYBCPSCu2uTBEeFHwGJZfH8DOTa1",
+                0,
+            )
+            .unwrap();
         assert_eq!(b"\x80", &decoded[..]);
     }
 
@@ -772,21 +798,28 @@ mod unit_tests {
         let mut token = encode(b"Hello world!", key, 0).unwrap();
         token.push('_');
 
-        assert!(
-            decode(&token, key, 0).unwrap_err()
-                == BrancaError::InvalidBase62Token
-        );
+        assert!(decode(&token, key, 0).unwrap_err() == BrancaError::InvalidBase62Token);
     }
 
     #[test]
     pub fn test_builder_nonce_is_correctly_used() {
         let key = b"supersecretkeyyoushouldnotcommit";
-        let ctx = Branca::new(key).unwrap();
-        let token = ctx.encode(b"").unwrap();
-        
-        let raw_token = b62_decode(BASE62, &token).unwrap();
-        let nonce = &raw_token[5..29];
+        let mut ctx = Branca::new(key).unwrap();
+        assert!(ctx.nonce.is_empty());
 
-        assert_eq!(&ctx.nonce()[..], nonce);
+        let token = ctx.encode(b"").unwrap();
+        assert!(!ctx.nonce.is_empty());
+
+        // Ensure the builder's nonce is used
+        let raw_token = b62_decode(BASE62, &token).unwrap();
+        let raw_token_nonce = &raw_token[5..29];
+        assert_eq!(raw_token_nonce, &ctx.nonce[..]);
+
+        // Ensure a new nonce is generated when calling encode
+        let token_again = ctx.encode(b"").unwrap();
+        let raw_token_again = b62_decode(BASE62, &token_again).unwrap();
+        let raw_token_nonce_again = &raw_token_again[5..29];
+        assert_eq!(raw_token_nonce_again, &ctx.nonce[..]);
+        assert_ne!(raw_token_nonce_again, raw_token_nonce);
     }
 }
