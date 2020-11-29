@@ -772,4 +772,16 @@ mod unit_tests {
                 == BrancaError::InvalidBase62Token
         );
     }
+
+    #[test]
+    pub fn test_builder_nonce_is_correctly_used() {
+        let key = b"supersecretkeyyoushouldnotcommit";
+        let ctx = Branca::new(key).unwrap();
+        let token = ctx.encode(b"").unwrap();
+        
+        let raw_token = b62_decode(BASE62, &token).unwrap();
+        let nonce = &raw_token[5..29];
+
+        assert_eq!(&ctx.nonce()[..], nonce);
+    }
 }
