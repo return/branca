@@ -47,7 +47,7 @@ The simplest way to use this crate is to use `Branca::new()` in this example bel
 
 ```rust
     let key = b"supersecretkeyyoushouldnotcommit";
-    let token = Branca::new(key).unwrap();
+    let mut token = Branca::new(key).unwrap();
     let ciphertext = token.encode(b"Hello World!").unwrap();
 
     let payload = token.decode(ciphertext.as_str(), 0).unwrap();
@@ -120,7 +120,7 @@ fn main(){
     }).to_string();
 
     let key = b"supersecretkeyyoushouldnotcommit";
-    let token = Branca::new(key).unwrap();
+    let mut token = Branca::new(key).unwrap();
     
     // Encode Message
     let branca_token = token.encode(message.as_bytes()).unwrap();
