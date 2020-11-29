@@ -14,6 +14,8 @@ pub enum Error {
     BadKeyLength,
     /// When the token has exceeded its TTL.
     ExpiredToken,
+    /// When adding TTL to token timestamp overflows.
+    OverflowingOperation,
     /// When the decryption of the ciphertext has failed.
     DecryptFailed,
     /// When encryption of the plaintext has failed.
@@ -34,6 +36,7 @@ impl StdErr for Error {
             Error::BadNonceLength => "Bad nonce length.",
             Error::BadKeyLength => "Bad key length.",
             Error::ExpiredToken => "This token has expired.",
+            Error::OverflowingOperation => "Attempting to add TTL to the lifetime overflowed.",
             Error::DecryptFailed => "Decryption failed.",
             Error::EncryptFailed => "Encryption failed.",
         }

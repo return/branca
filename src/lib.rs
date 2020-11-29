@@ -407,7 +407,9 @@ fn encode_with_nonce(
 ///
 /// * If the input is not in Base62 format, it returns a `BrancaError::InvalidBase62Token` Result.
 ///
-/// * This panics if the current system time cannot be obtained or if `ttl + timestamp` overflow.
+/// * If adding TTL to the token timestamp results in an overflow, it returns a `BrancaError::OverflowingOperation` Result.
+///
+/// * This panics if the current system time cannot be obtained.
 pub fn decode(data: &str, key: &[u8], ttl: u32) -> Result<Vec<u8>, BrancaError> {
     let sk: SecretKey = match SecretKey::from_slice(key) {
         Ok(key) => key,
@@ -455,7 +457,11 @@ pub fn decode(data: &str, key: &[u8], ttl: u32) -> Result<Vec<u8>, BrancaError> 
 
     // TTL check to determine if the token has expired.
     if ttl != 0 {
-        let future = timestamp.checked_add(ttl).expect("TTL too high.") as u64;
+        let future = match timestamp.checked_add(ttl) {
+            Some(value) => value as u64,
+            None => return Err(BrancaError::OverflowingOperation),
+        };
+
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("Failed to obtain timestamp from system clock.")
@@ -829,11 +835,13 @@ mod unit_tests {
     }
 
     #[test]
-    #[should_panic(expected = "TTL too high.")]
-    pub fn test_panic_on_overflowing_timestamp() {
+    pub fn test_error_on_overflowing_timestamp() {
         let key = b"supersecretkeyyoushouldnotcommit";
         let token = encode(b"", key, 4294967295).unwrap();
 
-        assert!(decode(&token, key, 1).is_err());
+        assert_eq!(
+            decode(&token, key, 1).unwrap_err(),
+            BrancaError::OverflowingOperation
+        );
     }
 }
