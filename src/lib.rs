@@ -337,19 +337,24 @@ impl Branca {
 /// 
 /// * This function panics if unable to securely generate random bytes.
 pub fn encode(data: &[u8], key: &[u8], timestamp: u32) -> Result<String, BrancaError> {
+    // Use CSPRNG to generate a unique nonce.
+    let n = Nonce::generate();
+    
+    encode_with_nonce(data, key, &n, timestamp)
+}
+
+fn encode_with_nonce(data: &[u8], key: &[u8], nonce: &Nonce, timestamp: u32) -> Result<String, BrancaError> {
     let sk: SecretKey = match SecretKey::from_slice(key) {
         Ok(key) => key,
         Err(UnknownCryptoError) => return Err(BrancaError::BadKeyLength),
     };
 
-    // Use CSPRNG to generate a unique nonce.
-    let n = Nonce::generate();
     // Version || Timestamp || Nonce
     let mut header = [0u8; 29];
 
     header[0] = VERSION;
     BigEndian::write_u32(&mut header[1..5], timestamp);
-    header[5..29].copy_from_slice(n.as_ref());
+    header[5..29].copy_from_slice(nonce.as_ref());
 
     let mut buf_crypt = vec![0u8; data.len() + 16 + 29]; // 16 bytes for the Poly1305 Tag.
                                                          // The header is prepended to the ciphertext and tag.
@@ -357,7 +362,7 @@ pub fn encode(data: &[u8], key: &[u8], timestamp: u32) -> Result<String, BrancaE
 
     match seal(
         &sk,
-        &n,
+        nonce,
         data,
         Some(header.as_ref()),
         &mut buf_crypt[29..],
