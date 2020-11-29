@@ -18,7 +18,7 @@ fuzz_target!(|data: &[u8]| {
     csprng.try_fill_bytes(&mut key).unwrap();
 
 
-    let ctx = Branca::new(&key).unwrap();
+    let mut ctx = Branca::new(&key).unwrap();
 
     if !ctx.decode(&String::from_utf8_lossy(data).to_string(), 0).is_err() {
         panic!("Decoded random string successfully");
