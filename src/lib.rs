@@ -539,8 +539,8 @@ mod unit_tests {
                         debug_assert!(test.nonce.is_some());
 
                         if test.is_valid {
-                            let nonce =
-                                Nonce::from_slice(test.nonce.as_ref().unwrap().as_bytes()).unwrap();
+                            let nonce = Nonce::from_slice(&parse_hex(test.nonce.as_ref().unwrap()))
+                                .unwrap();
 
                             let res = encode_with_nonce(
                                 &parse_hex(&test.msg),
@@ -549,12 +549,6 @@ mod unit_tests {
                                 test.timestamp,
                             )
                             .unwrap();
-
-                            let tmp = base_x::decode(BASE62, &test.token).unwrap();
-                            assert_eq!(
-                                test.nonce.as_ref().unwrap(),
-                                &String::from_utf8_lossy(&tmp[5..29]).to_string()
-                            );
 
                             assert_eq!(res, test.token);
                             assert_eq!(
@@ -566,7 +560,7 @@ mod unit_tests {
                         }
 
                         if !test.is_valid {
-                            let nonce = Nonce::from_slice(test.nonce.as_ref().unwrap().as_bytes());
+                            let nonce = Nonce::from_slice(&parse_hex(test.nonce.as_ref().unwrap()));
 
                             if nonce.is_err() {
                                 tests_run += 1;
