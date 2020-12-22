@@ -484,77 +484,131 @@ mod unit_tests {
 
     use super::*;
 
+    mod json_test_vectors {
+        use super::*;
+        use std::fs::File;
+        use std::io::BufReader;
+
+        #[allow(non_snake_case)]
+        #[derive(Serialize, Deserialize, Debug)]
+        struct TestFile {
+            version: String,
+            numberOfTests: u32,
+            testGroups: Vec<TestGroup>,
+        }
+
+        #[allow(non_snake_case)]
+        #[derive(Serialize, Deserialize, Debug)]
+        struct TestGroup {
+            testType: String,
+            tests: Vec<TestVector>,
+        }
+
+        #[allow(non_snake_case)]
+        #[derive(Serialize, Deserialize, Debug)]
+        struct TestVector {
+            id: u32,
+            comment: String,
+            key: String,
+            nonce: Option<String>,
+            timestamp: u32,
+            token: String,
+            msg: String,
+            is_valid: bool,
+        }
+
+        fn parse_hex(data: &str) -> Vec<u8> {
+            match data {
+                "" => vec![0u8; 0],
+                "80" => b"\x80".to_vec(),
+                _ => hex::decode(data).unwrap(),
+            }
+        }
+
+        #[test]
+        pub fn run_test_vectors() {
+            let file = File::open("test_data/test_vectors.json").unwrap();
+            let reader = BufReader::new(file);
+            let tests: TestFile = serde_json::from_reader(reader).unwrap();
+
+            let mut tests_run = 0;
+            for test_group in tests.testGroups.iter() {
+                for test in test_group.tests.iter() {
+                    if test_group.testType == "encoding and decoding" {
+                        println!("encoding and decoding: {}", test.id);
+                        debug_assert!(test.nonce.is_some());
+
+                        if test.is_valid {
+                            let nonce =
+                                Nonce::from_slice(test.nonce.as_ref().unwrap().as_bytes()).unwrap();
+
+                            let res = encode_with_nonce(
+                                &parse_hex(&test.msg),
+                                test.key.as_bytes(),
+                                &nonce,
+                                test.timestamp,
+                            )
+                            .unwrap();
+
+                            let tmp = base_x::decode(BASE62, &test.token).unwrap();
+                            assert_eq!(
+                                test.nonce.as_ref().unwrap(),
+                                &String::from_utf8_lossy(&tmp[5..29]).to_string()
+                            );
+
+                            assert_eq!(res, test.token);
+                            assert_eq!(
+                                decode(&test.token, test.key.as_bytes(), 0).unwrap(),
+                                parse_hex(&test.msg)
+                            );
+
+                            tests_run += 1;
+                        }
+
+                        if !test.is_valid {
+                            let nonce = Nonce::from_slice(test.nonce.as_ref().unwrap().as_bytes());
+
+                            if nonce.is_err() {
+                                tests_run += 1;
+                                continue;
+                            }
+
+                            let res = encode_with_nonce(
+                                &parse_hex(&test.msg),
+                                test.key.as_bytes(),
+                                &nonce.unwrap(),
+                                test.timestamp,
+                            );
+
+                            assert!(res.is_err());
+                            tests_run += 1;
+                        }
+                    }
+
+                    if test_group.testType == "decoding" {
+                        println!("deocding only: {}", test.id);
+                        debug_assert!(test.nonce.is_none());
+
+                        let res = decode(
+                            &test.token,
+                            test.key.as_bytes(),
+                            0, // Not a part of test vectors
+                        );
+
+                        assert_eq!(test.is_valid, res.is_ok());
+                        tests_run += 1;
+                    }
+                }
+            }
+
+            assert_eq!(tests_run, tests.numberOfTests);
+        }
+    }
+
     #[derive(Serialize, Deserialize, Debug)]
     struct JSONTest {
         a: String,
         b: bool,
-    }
-
-    // Test vectors from: https://github.com/tuupola/branca-js/blob/master/test.js
-    #[test]
-    pub fn test_decode_1() {
-        let ciphertext =
-            "870S4BYjk7NvyViEjUNsTEmGXbARAX9PamXZg0b3JyeIdGyZkFJhNsOQW6m0K9KnXt3ZUBqDB6hF4";
-        let key = b"supersecretkeyyoushouldnotcommit";
-        let ttl = 0;
-
-        assert_eq!(decode(ciphertext, key, ttl).unwrap(), b"Hello world!");
-    }
-
-    #[test]
-    pub fn test_decode_2() {
-        let ciphertext =
-            "89i7YCwtsSiYfXvOKlgkCyElnGCOEYG7zLCjUp4MuDIZGbkKJgt79Sts9RdW2Yo4imonXsILmqtNb";
-        let key = b"supersecretkeyyoushouldnotcommit";
-        let ttl = 0;
-
-        assert_eq!(decode(ciphertext, key, ttl).unwrap(), b"Hello world!");
-    }
-
-    #[test]
-    pub fn test_decode_3() {
-        let ciphertext =
-            "875GH234UdXU6PkYq8g7tIM80XapDQOH72bU48YJ7SK1iHiLkrqT8Mly7P59TebOxCyQeqpMJ0a7a";
-        let key = b"supersecretkeyyoushouldnotcommit";
-        let ttl = 0;
-
-        assert_eq!(decode(ciphertext, key, ttl).unwrap(), b"Hello world!");
-    }
-
-    #[test]
-    pub fn test_decode_4() {
-        let ciphertext = "1jIBheHWEwYIP59Wpm4QkjkIKuhc12NcYdp9Y60B6av7sZc3vJ5wBwmKJyQzGfJCrvuBgGnf";
-        let key = b"supersecretkeyyoushouldnotcommit";
-        let ttl = 0;
-
-        assert_eq!(
-            decode(ciphertext, key, ttl).unwrap(),
-            b"\x00\x00\x00\x00\x00\x00\x00\x00"
-        );
-    }
-
-    #[test]
-    pub fn test_decode_5() {
-        let ciphertext = "1jrx6DUq9HmXvYdmhWMhXzx3klRzhlAjsc3tUFxDPCvZZLm16GYOzsBG4KwF1djjW1yTeZ2B";
-        let key = b"supersecretkeyyoushouldnotcommit";
-        let ttl = 0;
-
-        assert_eq!(
-            decode(ciphertext, key, ttl).unwrap(),
-            b"\x00\x00\x00\x00\x00\x00\x00\x00"
-        );
-    }
-
-    #[test]
-    pub fn test_decode_6() {
-        let ciphertext = "1jJDJOEfuc4uBJh5ivaadjo6UaBZJDZ1NsWixVCz2mXw3824JRDQZIgflRqCNKz6yC7a0JKC";
-        let key = b"supersecretkeyyoushouldnotcommit";
-        let ttl = 0;
-
-        assert_eq!(
-            decode(ciphertext, key, ttl).unwrap(),
-            b"\x00\x00\x00\x00\x00\x00\x00\x00"
-        );
     }
 
     #[test]
