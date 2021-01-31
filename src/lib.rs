@@ -514,7 +514,7 @@ mod unit_tests {
             timestamp: u32,
             token: String,
             msg: String,
-            is_valid: bool,
+            isValid: bool,
         }
 
         fn parse_hex(data: &str) -> Vec<u8> {
@@ -534,11 +534,10 @@ mod unit_tests {
             let mut tests_run = 0;
             for test_group in tests.testGroups.iter() {
                 for test in test_group.tests.iter() {
-                    if test_group.testType == "encoding and decoding" {
-                        println!("encoding and decoding: {}", test.id);
+                    if test_group.testType == "encoding" {
                         debug_assert!(test.nonce.is_some());
 
-                        if test.is_valid {
+                        if test.isValid {
                             let nonce = Nonce::from_slice(&parse_hex(test.nonce.as_ref().unwrap()))
                                 .unwrap();
 
@@ -559,7 +558,7 @@ mod unit_tests {
                             tests_run += 1;
                         }
 
-                        if !test.is_valid {
+                        if !test.isValid {
                             let nonce = Nonce::from_slice(&parse_hex(test.nonce.as_ref().unwrap()));
 
                             if nonce.is_err() {
@@ -580,7 +579,6 @@ mod unit_tests {
                     }
 
                     if test_group.testType == "decoding" {
-                        println!("deocding only: {}", test.id);
                         debug_assert!(test.nonce.is_none());
 
                         let res = decode(
@@ -589,7 +587,7 @@ mod unit_tests {
                             0, // Not a part of test vectors
                         );
 
-                        assert_eq!(test.is_valid, res.is_ok());
+                        assert_eq!(test.isValid, res.is_ok());
                         tests_run += 1;
                     }
                 }
