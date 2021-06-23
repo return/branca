@@ -543,7 +543,7 @@ mod unit_tests {
 
                             let res = encode_with_nonce(
                                 &parse_hex(&test.msg),
-                                test.key.as_bytes(),
+                                &parse_hex(&test.key),
                                 &nonce,
                                 test.timestamp,
                             )
@@ -551,7 +551,7 @@ mod unit_tests {
 
                             assert_eq!(res, test.token);
                             assert_eq!(
-                                decode(&test.token, test.key.as_bytes(), 0).unwrap(),
+                                decode(&test.token, &parse_hex(&test.key), 0).unwrap(),
                                 parse_hex(&test.msg)
                             );
 
@@ -568,7 +568,7 @@ mod unit_tests {
 
                             let res = encode_with_nonce(
                                 &parse_hex(&test.msg),
-                                test.key.as_bytes(),
+                                &parse_hex(&test.key),
                                 &nonce.unwrap(),
                                 test.timestamp,
                             );
@@ -583,7 +583,7 @@ mod unit_tests {
 
                         let res = decode(
                             &test.token,
-                            test.key.as_bytes(),
+                            &parse_hex(&test.key),
                             0, // Not a part of test vectors
                         );
 
