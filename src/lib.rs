@@ -75,7 +75,7 @@ fn main() {
 
     let ciphertext = token
                       .set_timestamp(1234567890)
-                      .set_key(key)
+                      .set_key(key.to_vec())
                       .set_ttl(300);
                       //.encode(b"Hello World!").unwrap();
 
@@ -201,7 +201,7 @@ impl Branca {
     /// fn main() {
     ///        let mut key = [0u8; 32];
     ///        getrandom::getrandom(&mut key).unwrap();
-    ///        let token = Branca::new(key);
+    ///        let token = Branca::new(&key);
     /// }
     ///```
     pub fn new(key: &[u8]) -> Result<Branca, BrancaError> {
@@ -282,7 +282,7 @@ impl Branca {
     /// fn main() {
     ///     let mut key = [0u8; 32];
     ///     getrandom::getrandom(&mut key).unwrap();
-    ///     let mut token = Branca::new(key).unwrap();
+    ///     let mut token = Branca::new(&key).unwrap();
     ///
     ///     let ciphertext = token.encode(b"Hello World!").unwrap();
     ///     // Branca token is now in 'ciphertext' as a String.
