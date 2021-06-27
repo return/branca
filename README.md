@@ -13,11 +13,11 @@
 [ci-badge]: https://github.com/return/branca/workflows/CI/badge.svg
 [ci-url]: https://github.com/return/branca/actions
 
-Branca is a secure alternative token format to JWT. This implementation is written in pure Rust and uses the XChaCha20-Poly1305 AEAD (Authenticated Encryption with Associated Data) stream cipher for generating authenticated and encrypted tamper-proof tokens. More information about the branca token specification can be found here in [branca-spec.](https://github.com/tuupola/branca-spec/blob/master/README.md)
+Branca is a secure alternative token format to JWT. This implementation is written in pure Rust and uses the XChaCha20-Poly1305 AEAD (Authenticated Encryption with Associated Data) stream cipher for generating authenticated and encrypted tamper-proof tokens. More information about the Branca token specification can be found here in [branca-spec.](https://github.com/tuupola/branca-spec/blob/master/README.md)
 
 # Security
 
-_NOTE: Branca uses orion for its cryptographic primitives and due to orion not recieving any formal security audit, the same security risks that orion has also applies to this Branca implementation if one uses it in production. For a better understanding about the security risks involved, see the orion [wiki](https://github.com/brycx/orion/wiki/Security)._
+_NOTE: Branca uses orion for its cryptographic primitives and due to orion not receiving any formal security audit, the same security risks that orion has also applies to this Branca implementation if one uses it in production. For a better understanding about the security risks involved, see the orion [wiki](https://github.com/orion-rs/orion/wiki/Security)._
 
 **⚠️ Use at your own risk. ⚠️**
 
@@ -33,10 +33,12 @@ Add this line into your Cargo.toml under the dependencies section:
 ```toml
 [dependencies]
 branca = "^0.10.0"
+getrandom = "^0.2.3"
 ```
 
 Then you can import the crate into your project with these lines:
 ```rust
+extern crate getrandom;
 extern crate branca;
 use branca::{Branca, encode, decode};
 ```
@@ -46,8 +48,10 @@ use branca::{Branca, encode, decode};
 The simplest way to use this crate is to use `Branca::new()` in this example below:
 
 ```rust
-    let key = b"supersecretkeyyoushouldnotcommit";
-    let mut token = Branca::new(key).unwrap();
+    let mut key = [0u8; 32];
+    getrandom::getrandom(&mut key).unwrap();
+
+    let mut token = Branca::new(&key).unwrap();
     let ciphertext = token.encode(b"Hello World!").unwrap();
 
     let payload = token.decode(ciphertext.as_str(), 0).unwrap();
@@ -59,11 +63,12 @@ See more examples of setting fields in the [Branca struct](https://docs.rs/branc
 ## Direct usage without Branca builder.
 ### Encoding:
 ```rust
-let key = b"supersecretkeyyoushouldnotcommit";
+let mut key = [0u8; 32];
+getrandom::getrandom(&mut key).unwrap();
 
 let message = b"Hello world!";
 let timestamp = 123206400;
-let branca_token = encode(message, key, timestamp).unwrap();
+let branca_token = encode(message, &key, timestamp).unwrap();
 
 // branca_token = 875GH233T7.......
 ```
@@ -71,9 +76,8 @@ let branca_token = encode(message, key, timestamp).unwrap();
 ### Decoding:
 ```rust
 let ciphertext = branca_token.as_str();
-let key = b"supersecretkeyyoushouldnotcommit";
 let ttl = 0; // The ttl can be used to determine if the supplied token has expired or not.
-let decoded = decode(ciphertext, key, ttl);
+let decoded = decode(ciphertext, &key, ttl);
 
 if decoded.is_err() {
     // Error
@@ -103,6 +107,7 @@ extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 extern crate branca;
+extern crate getrandom;
 
 use branca::{encode, decode};
 
@@ -119,8 +124,10 @@ fn main(){
         "scope":["read", "write", "delete"],
     }).to_string();
 
-    let key = b"supersecretkeyyoushouldnotcommit";
-    let mut token = Branca::new(key).unwrap();
+    let mut key = [0u8; 32];
+    getrandom::getrandom(&mut key).unwrap();
+    
+    let mut token = Branca::new(&key).unwrap();
     
     // Encode Message
     let branca_token = token.encode(message.as_bytes()).unwrap();
@@ -136,7 +143,7 @@ fn main(){
 }
 ```
 
-Branca uses [Orion](https://github.com/brycx/orion) to generate secure random nonces when using the encode() and builder methods. By default, Branca does not allow setting the nonce directly since that there is a risk that it can be reused by the user which is a foot-gun.
+Branca uses [Orion](https://github.com/orion-rs/orion) to generate secure random nonces when using the encode() and builder methods. By default, Branca does not allow setting the nonce directly since that there is a risk that it can be reused by the user which is a foot-gun.
 
 The nonce generated **must be 24 bytes in length.** Keys **must be 32 bytes in length.**
 
