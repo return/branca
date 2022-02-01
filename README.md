@@ -17,7 +17,7 @@ Branca is a secure alternative token format to JWT. This implementation is writt
 
 # Security
 
-_NOTE: Branca uses orion for its cryptographic primitives and due to orion not receiving any formal security audit, the same security risks that orion has also applies to this Branca implementation if one uses it in production. For a better understanding about the security risks involved, see the orion [wiki](https://github.com/orion-rs/orion/wiki/Security)._
+_NOTE: Branca uses Orion for its cryptographic primitives and due to Orion not receiving any formal security audit, the same security risks that Orion has also applies to this Branca implementation if one uses it in production. For a better understanding about the security risks involved, see the Orion [wiki](https://github.com/orion-rs/orion/wiki/Security)._
 
 **⚠️ Use at your own risk. ⚠️**
 
@@ -90,7 +90,7 @@ if decoded.is_err() {
 ## Encode/Decode arbitrary data structures with Serde.
 Since Branca is able to work with any format of data in the payload, it is possible for the payload to be anything from a JSON object, plaintext, raw bytes, protocol buffers or even a JWT.
 
-Here is a example of using Branca to encode/decode a typical JSON object with serde_json.
+Here is an example of using Branca to encode/decode a typical JSON object with serde_json.
 
 Add the following into your Cargo.toml file:
 ```toml
@@ -143,7 +143,7 @@ fn main(){
 }
 ```
 
-Branca uses [Orion](https://github.com/orion-rs/orion) to generate secure random nonces when using the encode() and builder methods. By default, Branca does not allow setting the nonce directly since that there is a risk that it can be reused by the user which is a foot-gun.
+Branca uses [Orion](https://github.com/orion-rs/orion) to generate secure random nonces when using the `encode()` and builder methods. By default, Branca does not allow setting the nonce directly since that there is a risk that it can be reused by the user which is a foot-gun.
 
 The nonce generated **must be 24 bytes in length.** Keys **must be 32 bytes in length.**
 
