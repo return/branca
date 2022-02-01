@@ -625,7 +625,7 @@ mod unit_tests {
         let key = b"supersecretkeyyoushouldnotcommit";
         let mut token = Branca::new(key).unwrap();
         let ciphertext = token.set_timestamp(123206400).encode(b"Test");
-        assert_eq!(ciphertext.is_ok(), true);
+        assert!(ciphertext.is_ok());
     }
 
     #[test]
@@ -693,7 +693,7 @@ mod unit_tests {
             serde_json::from_str(&String::from_utf8_lossy(&json)).unwrap();
 
         assert_eq!(serialized_json.a, "some string");
-        assert_eq!(serialized_json.b, false);
+        assert!(!serialized_json.b);
     }
 
     #[test]
@@ -719,7 +719,7 @@ mod unit_tests {
             serde_json::from_str(&String::from_utf8_lossy(&json)).unwrap();
 
         assert_eq!(serialized_json.a, "some string");
-        assert_eq!(serialized_json.b, false);
+        assert!(!serialized_json.b);
     }
 
     #[test]
@@ -738,9 +738,9 @@ mod unit_tests {
         let mut token = Branca::new(key).unwrap();
         let ciphertext = token.set_timestamp(123206400).encode(b"Test").unwrap();
         let payload = token.decode(ciphertext.as_str(), 0);
-        match payload {
-            Err(e) => assert_eq!(e, BrancaError::ExpiredToken),
-            Ok(_) => {}
+
+        if let Err(e) = payload {
+            assert_eq!(e, BrancaError::ExpiredToken)
         }
     }
 
@@ -752,9 +752,8 @@ mod unit_tests {
         let ttl = 3600;
         let message = decode(ciphertext, key, ttl);
 
-        match message {
-            Err(e) => assert_eq!(e, BrancaError::ExpiredToken),
-            Ok(_) => {}
+        if let Err(e) = message {
+            assert_eq!(e, BrancaError::ExpiredToken)
         }
     }
 
@@ -766,9 +765,8 @@ mod unit_tests {
         let ttl = 0;
         let branca_token = decode(ciphertext, key, ttl);
 
-        match branca_token {
-            Err(e) => assert_eq!(e, BrancaError::DecryptFailed),
-            Ok(_) => {}
+        if let Err(e) = branca_token {
+            assert_eq!(e, BrancaError::DecryptFailed)
         }
     }
 
@@ -779,9 +777,8 @@ mod unit_tests {
         let ttl = 0;
         let branca_token = decode(ciphertext, key, ttl);
 
-        match branca_token {
-            Err(e) => assert_eq!(e, BrancaError::InvalidBase62Token),
-            Ok(_) => {}
+        if let Err(e) = branca_token {
+            assert_eq!(e, BrancaError::InvalidBase62Token)
         }
     }
 
@@ -792,9 +789,8 @@ mod unit_tests {
         let timestamp = 123206400;
         let branca_token = encode(message, key, timestamp);
 
-        match branca_token {
-            Err(e) => assert_eq!(e, BrancaError::BadKeyLength),
-            Ok(_) => {}
+        if let Err(e) = branca_token {
+            assert_eq!(e, BrancaError::BadKeyLength)
         }
     }
 
@@ -806,9 +802,8 @@ mod unit_tests {
         let ttl = 0;
         let branca_token = decode(ciphertext, key, ttl);
 
-        match branca_token {
-            Err(e) => assert_eq!(e, BrancaError::InvalidTokenVersion),
-            Ok(_) => {}
+        if let Err(e) = branca_token {
+            assert_eq!(e, BrancaError::InvalidTokenVersion)
         }
     }
 
@@ -824,9 +819,9 @@ mod unit_tests {
         // 651323084: Some day in 1990
         BigEndian::write_u32(&mut decoded[1..5], 651323084);
 
-        assert!(
-            decode(&b62_encode(BASE62, &decoded), key, 1000).unwrap_err()
-                == BrancaError::DecryptFailed
+        assert_eq!(
+            decode(&b62_encode(BASE62, &decoded), key, 1000).unwrap_err(),
+            BrancaError::DecryptFailed
         );
     }
 
@@ -876,7 +871,10 @@ mod unit_tests {
         let mut token = encode(b"Hello world!", key, 0).unwrap();
         token.push('_');
 
-        assert!(decode(&token, key, 0).unwrap_err() == BrancaError::InvalidBase62Token);
+        assert_eq!(
+            decode(&token, key, 0).unwrap_err(),
+            BrancaError::InvalidBase62Token
+        );
     }
 
     #[test]
