@@ -1,7 +1,7 @@
 [package]
 name = "branca"
 description = "Authenticated encrypted API tokens for Rust. A secure alternative to JWT."
-version = "0.10.0"
+version = "0.10.1"
 authors = ["return"]
 edition = "2018"
 keywords = ["fernet", "branca", "cryptography", "aead", "xchacha20_poly1305"]
@@ -15,8 +15,8 @@ repository = "https://github.com/return/branca"
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-base-x = "0.2.6"
-byteorder = "1.3.4"
+base-x = "0.2.8"
+byteorder = "1.4.3"
 orion = "0.17.0"
 
 [dev-dependencies]
