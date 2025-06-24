@@ -432,6 +432,49 @@ fn encode_with_nonce(
 ///
 /// * This panics if the current system time cannot be obtained.
 pub fn decode(data: &str, key: &[u8], ttl: u32) -> Result<Vec<u8>, BrancaError> {
+    // Extract timestamp & payload.
+    let (timestamp, buf_crypt) = decode_with_timestamp(data, key)?;
+
+    // TTL check to determine if the token has expired.
+    if ttl != 0 {
+        let future = match timestamp.checked_add(ttl) {
+            Some(value) => value as u64,
+            None => return Err(BrancaError::OverflowingOperation),
+        };
+
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("Failed to obtain timestamp from system clock.")
+            .as_secs();
+        if future < now {
+            return Err(BrancaError::ExpiredToken);
+        }
+    }
+
+    // Return the plaintext.
+    Ok(buf_crypt)
+}
+
+/// Decodes a Branca token and returns the timestamp and plaintext as a tuple.
+/// This is the underlying function used by `decode()` to extract the timestamp
+/// and the plaintext from the token.
+/// This function is useful if you want to extract the timestamp without checking the TTL (or implement your own TTL logic).
+/// 
+/// `data` - The input which is to be decrypted with the user-supplied key.
+/// 
+/// `key` - The user-supplied key to use for decryption.
+/// 
+/// Note:
+/// 
+/// * The key must be 32 bytes in length, otherwise it returns a `BrancaError::BadKeyLength` Result.
+/// 
+/// * If the decryption fails, it returns a `BrancaError::DecryptFailed` Result.
+/// 
+/// * If the input is not in Base62 format, it returns a `BrancaError::InvalidBase62Token` Result.
+pub fn decode_with_timestamp(
+    data: &str,
+    key: &[u8],
+) -> Result<(u32, Vec<u8>), BrancaError> {
     let sk: SecretKey = match SecretKey::from_slice(key) {
         Ok(key) => key,
         Err(UnknownCryptoError) => return Err(BrancaError::BadKeyLength),
@@ -476,24 +519,7 @@ pub fn decode(data: &str, key: &[u8], ttl: u32) -> Result<Vec<u8>, BrancaError> 
 
     let timestamp: u32 = BigEndian::read_u32(&decoded_data[1..5]);
 
-    // TTL check to determine if the token has expired.
-    if ttl != 0 {
-        let future = match timestamp.checked_add(ttl) {
-            Some(value) => value as u64,
-            None => return Err(BrancaError::OverflowingOperation),
-        };
-
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .expect("Failed to obtain timestamp from system clock.")
-            .as_secs();
-        if future < now {
-            return Err(BrancaError::ExpiredToken);
-        }
-    }
-
-    // Return the plaintext.
-    Ok(buf_crypt)
+    Ok((timestamp, buf_crypt))
 }
 
 #[cfg(test)]
