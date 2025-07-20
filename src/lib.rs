@@ -41,7 +41,7 @@ use branca::Branca;
 
 fn main() {
     let mut key = [0u8; 32];
-    getrandom::getrandom(&mut key).unwrap();
+    getrandom::fill(&mut key).unwrap();
 
     let mut token = Branca::new(&key).unwrap();
     let ciphertext = token.encode(b"Hello World!").unwrap();
@@ -63,7 +63,7 @@ use branca::Branca;
 
 fn main() {
     let mut key = [0u8; 32];
-    getrandom::getrandom(&mut key).unwrap();
+    getrandom::fill(&mut key).unwrap();
 
     let mut token = Branca::new(&key).unwrap();
 
@@ -96,7 +96,7 @@ extern crate getrandom;
 use branca::{encode, decode};
 
 let mut key = [0u8; 32];
-getrandom::getrandom(&mut key).unwrap();
+getrandom::fill(&mut key).unwrap();
 
 let token = encode(b"Hello World!", &key, 123206400).unwrap();
 // token = "875G...p0a"
@@ -200,7 +200,7 @@ impl Branca {
     ///
     /// fn main() {
     ///        let mut key = [0u8; 32];
-    ///        getrandom::getrandom(&mut key).unwrap();
+    ///        getrandom::fill(&mut key).unwrap();
     ///        let token = Branca::new(&key);
     /// }
     ///```
@@ -281,7 +281,7 @@ impl Branca {
     ///
     /// fn main() {
     ///     let mut key = [0u8; 32];
-    ///     getrandom::getrandom(&mut key).unwrap();
+    ///     getrandom::fill(&mut key).unwrap();
     ///     let mut token = Branca::new(&key).unwrap();
     ///
     ///     let ciphertext = token.encode(b"Hello World!").unwrap();
@@ -324,7 +324,7 @@ impl Branca {
     ///
     /// fn main() {
     ///     let mut key = [0u8; 32];
-    ///     getrandom::getrandom(&mut key).unwrap();
+    ///     getrandom::fill(&mut key).unwrap();
     ///
     ///     let mut token = Branca::new(&key).unwrap();
     ///     let crypted = token.encode(b"Hello World!").unwrap();
