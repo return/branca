@@ -32,8 +32,8 @@ Add this line into your Cargo.toml under the dependencies section:
 
 ```toml
 [dependencies]
-branca = "^0.10.0"
-getrandom = "^0.2.3"
+branca = "^0.10.2"
+getrandom = "^0.3.3"
 ```
 
 Then you can import the crate into your project with these lines:
@@ -49,7 +49,7 @@ The simplest way to use this crate is to use `Branca::new()` in this example bel
 
 ```rust
     let mut key = [0u8; 32];
-    getrandom::getrandom(&mut key).unwrap();
+    getrandom::fill(&mut key).unwrap();
 
     let mut token = Branca::new(&key).unwrap();
     let ciphertext = token.encode(b"Hello World!").unwrap();
@@ -64,7 +64,7 @@ See more examples of setting fields in the [Branca struct](https://docs.rs/branc
 ### Encoding:
 ```rust
 let mut key = [0u8; 32];
-getrandom::getrandom(&mut key).unwrap();
+getrandom::fill(&mut key).unwrap();
 
 let message = b"Hello world!";
 let timestamp = 123206400;
@@ -95,7 +95,7 @@ Here is an example of using Branca to encode/decode a typical JSON object with s
 Add the following into your Cargo.toml file:
 ```toml
 [dependencies]
-branca = "^0.10.0"
+branca = "^0.10.2"
 serde_json = "^1.0"
 serde_derive = "1.0.97"
 
@@ -125,7 +125,7 @@ fn main(){
     }).to_string();
 
     let mut key = [0u8; 32];
-    getrandom::getrandom(&mut key).unwrap();
+    getrandom::fill(&mut key).unwrap();
     
     let mut token = Branca::new(&key).unwrap();
     
@@ -158,7 +158,7 @@ Contributions and patches are welcome! Fork this repository, add your changes an
 
 Before you send a PR, make sure you run `cargo test` first to check if your changes pass the tests.
 
-If you would like to fix a bug or add a enhancement, please do so in the issues section and provide a short description about your changes.
+If you would like to fix a bug or add an enhancement, please do so in the issues section and provide a short description about your changes.
 
 # License
 MIT
